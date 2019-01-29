@@ -5,10 +5,6 @@ Arduboy2 arduboy;
                          位图
   =========================================================*/
 /*
-  const uint8_t Block_[] PROGMEM = {};
-*/
-
-/*
    方块材质
    1  土地
    2  水-1
@@ -68,7 +64,44 @@ const uint8_t Block_14[] PROGMEM = {0x38, 0xfb, 0xbb, 0x5b, 0xdb, 0x4b, 0x5b, 0x
 const uint8_t Block_15[] PROGMEM = {0x3f, 0xdf, 0xef, 0xef, 0xdf, 0x33, 0x2d, 0x1e, 0x1e, 0x2d, 0x33, 0xdf, 0xef, 0xef, 0xdf, 0x3f,
                                     0xff, 0xfe, 0xfd, 0xfd, 0xfe, 0xff, 0x0f, 0xe0, 0xe0, 0x0f, 0xff, 0xfe, 0xfd, 0xfd, 0xfe, 0xff,
                                    };
-const unsigned char *Block[15] = {Block_2, Block_3, Block_4, Block_5, Block_6, Block_7, Block_8, Block_9, Block_10, Block_11, Block_12, Block_13, Block_14, Block_15, Block_10,};
+const uint8_t Block_17[] PROGMEM = {0x07, 0xf3, 0x1b, 0x5b, 0xf3, 0x9b, 0x73, 0x9b, 0xf3, 0xdb, 0x13, 0xfb, 0xd3, 0x1b, 0xd3, 0x07,
+                                    0xf0, 0xe7, 0xec, 0xe5, 0xef, 0xe4, 0xef, 0xe4, 0xef, 0xe5, 0xec, 0xe5, 0xef, 0xec, 0xe7, 0xf0,
+                                   };
+const uint8_t Block_18[] PROGMEM = {0xff, 0xff, 0xff, 0x1f, 0x5f, 0x0f, 0x6f, 0x07, 0xd7, 0xc3, 0xdb, 0x01, 0xf5, 0x70, 0x76, 0x00,
+                                    0x01, 0x7d, 0x7d, 0x00, 0x2f, 0x07, 0x37, 0x00, 0x6b, 0x61, 0x6d, 0x60, 0x7a, 0x78, 0x7b, 0x00,
+                                   };
+const uint8_t Block_19[] PROGMEM = {0x00, 0x00, 0x00, 0x8f, 0xcf, 0xcf, 0x4f, 0x6f, 0x2f, 0x77, 0x17, 0x3b, 0xcb, 0xdd, 0xdd, 0x01,
+                                    0x02, 0xf7, 0xf1, 0xf1, 0x00, 0xfd, 0xfc, 0x00, 0xff, 0xff, 0xff, 0x00, 0xdf, 0x0f, 0xef, 0x00,
+                                   };
+const uint8_t Block_20[] PROGMEM = {0x59, 0xc6, 0xd6, 0x14, 0x31, 0xc3, 0xeb, 0xe9, 0x2c, 0xad, 0x4c, 0x65, 0x63, 0x0b, 0xd8, 0x1b,
+                                    0xb0, 0x0e, 0x66, 0x71, 0x22, 0x8c, 0x3e, 0x3c, 0x4c, 0x31, 0xeb, 0x07, 0xb3, 0xb8, 0x8d, 0x30,
+                                   };
+const uint8_t Block_21[] PROGMEM = {0xff, 0x1f, 0xef, 0xd7, 0xf7, 0xf7, 0xb7, 0xd7, 0xb7, 0xb7, 0xf7, 0xf7, 0xd7, 0xef, 0x1f, 0xff,
+                                    0xff, 0x00, 0x7f, 0xde, 0xec, 0xda, 0xff, 0xec, 0xe9, 0xfa, 0xdf, 0xea, 0xfd, 0x7f, 0x00, 0xff,
+                                   };
+const uint8_t Block_22[] PROGMEM = {0xff, 0x00, 0xff, 0xfb, 0x1d, 0x0d, 0xc7, 0xe7, 0xe7, 0xf7, 0xed, 0x1d, 0xfb, 0xff, 0x00, 0xff,
+                                    0xff, 0x00, 0xff, 0x95, 0xb6, 0xec, 0xf8, 0xf9, 0xf9, 0xf9, 0xec, 0xb6, 0x95, 0xff, 0x00, 0xff,
+                                   };
+const uint8_t Block_23[] PROGMEM = {0xfa, 0xfa, 0xfa, 0xfa, 0xfa, 0x3a, 0xda, 0xea, 0xe2, 0xea, 0xda, 0x3a, 0xfa, 0xfa, 0xfa, 0xfa,
+                                    0xff, 0xff, 0xff, 0xff, 0xf9, 0xf4, 0xf6, 0xf4, 0xf4, 0xf6, 0xf6, 0xf4, 0xf9, 0xff, 0xff, 0xff,
+                                   };
+const uint8_t Block_24[] PROGMEM = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+                                    0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0x01, 0xfd, 0xfd, 0x01, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd,
+                                   };
+const uint8_t Block_25[] PROGMEM = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xfe, 0xfe, 0x00, 0xfa, 0xfa, 0xfa, 0xfa, 0xfa, 0xfa,
+                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                   };
+const uint8_t Block_26[] PROGMEM = {0xfa, 0xfa, 0xfa, 0xfa, 0xfa, 0xfa, 0x00, 0xfe, 0xfe, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                   };
+const uint8_t Block_27[] PROGMEM = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+                                    0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd,
+                                   };
+/*
+  const uint8_t Block_[] PROGMEM = {};
+*/
+const unsigned char *Block[26] = {Block_2, Block_3, Block_4, Block_5, Block_6, Block_7, Block_8, Block_9, Block_10, Block_11, Block_12, Block_13, Block_14, Block_15, Block_10, Block_17, Block_18, Block_19, Block_20, Block_21, Block_22, Block_23, Block_24, Block_25, Block_26, Block_27,};
+
 /*
   玩家
 */
@@ -153,14 +186,14 @@ bool dialog; //对话框
 bool LA = false; //行动许可
 bool DisplayInvert = false;
 bool CN_text_BG = 0;
-byte ROOM = 9; //当前房间号
+byte ROOM = 13; //当前房间号
 byte DX, DY, CDX, CDY;
 byte PMX, PMY; //玩家在地图中的位置 0:x 1:y
 int CPDX, CPDY; //玩家朝向x和y轴
 
-byte SBDPL[] = {2, 3, 5, 9, 10, 11, 12, 13, 14}; //障碍物id
+byte SBDPL[] = {2, 3, 5, 9, 10, 11, 12, 13, 14, 20, 21, 22, 24, 25, 26, 27}; //障碍物id
 int Entity[1][2] = {    //实体坐标
-  {0, 0},   //注册为玩家
+  {136, 184},   //注册为玩家
 };
 byte player_dyn = 0;     //玩家动态帧
 byte PlayerD = 1;       //玩家方向
@@ -178,7 +211,7 @@ byte room, room_f;
 #define MISAKI_FONT_F2_PAGE 0xF2
 #define MISAKI_FONT_F2_W 7
 #define MISAKI_FONT_F2_SIZE 0x46
-#define TPNUM 8
+#define TPNUM 11
 /*=========================================================
                          地图
                          第一个参数为房间号 第二三个参数为xy
@@ -212,8 +245,8 @@ const PROGMEM byte MAP[16][16][16] = {
   4 , 4 , 4 , 8 , 8 , 8 , 8 , 8 , 1 , 6 , 1 , 8 , 8 , 1 , 2 , 2 , 4 , 7 , 4 , 4 , 4 , 8 , 8 , 1 , 1 , 6 , 1 , 8 , 1 , 2 , 2 , 2 , 8 , 4 , 4 , 8 , 8 , 8 , 6 , 6 , 6 , 6 , 1 , 1 , 2 , 2 , 2 , 2 , 8 , 8 , 8 , 8 , 4 , 1 , 6 , 4 , 4 , 4 , 1 , 2 , 2 , 2 , 2 , 2 , 8 , 8 , 4 , 5 , 1 , 1 , 6 , 1 , 4 , 1 , 2 , 2 , 2 , 2 , 7 , 7 , 8 , 8 , 4 , 4 , 4 , 1 , 6 , 1 , 1 , 2 , 2 , 2 , 2 , 7 , 1 , 8 , 8 , 4 , 8 , 1 , 1 , 7 , 6 , 1 , 2 , 2 , 2 , 2 , 1 , 1 , 8 , 8 , 8 , 8 , 1 , 7 , 1 , 1 , 4 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 1 , 1 , 1 , 16 , 2 , 2 , 2 , 2 , 2 , 1 , 8 , 8 , 8 , 2 , 2 , 2 , 2 , 2 , 2 , 16 , 2 , 2 , 5 , 2 , 2 , 1 , 8 , 5 , 8 , 2 , 2 , 2 , 2 , 2 , 2 , 16 , 2 , 5 , 4 , 2 , 2 , 1 , 8 , 8 , 8 , 2 , 2 , 2 , 2 , 2 , 1 , 6 , 7 , 4 , 4 , 2 , 2 , 1 , 8 , 8 , 6 , 2 , 2 , 2 , 2 , 1 , 1 , 6 , 6 , 1 , 16 , 16 , 16 , 16 , 6 , 6 , 6 , 8 , 8 , 2 , 2 , 1 , 1 , 6 , 1 , 4 , 2 , 2 , 2 , 1 , 1 , 8 , 8 , 8 , 8 , 5 , 4 , 1 , 6 , 6 , 4 , 8 , 4 , 2 , 2 , 1 , 7 , 8 , 8 , 8 , 8 , 8 , 4 , 4 , 1 , 1 , 8 , 8 , 4 , 2 , 2 , 1 , 1 , 1 , 8 ,
   //ROOM 13
   2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 4 , 7 , 1 , 1 , 7 , 2 , 2 , 2 , 2 , 1 , 4 , 4 , 1 , 1 , 1 , 4 , 4 , 1 , 8 , 8 , 1 , 2 , 4 , 1 , 1 , 1 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 1 , 1 , 1 , 1 , 1 , 6 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 7 , 1 , 4 , 4 , 6 , 8 , 8 , 8 , 7 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 1 , 1 , 4 , 1 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 1 , 4 , 7 , 1 , 6 , 8 , 4 , 8 , 4 , 1 , 1 , 1 , 7 , 8 , 1 , 7 , 1 , 4 , 7 , 4 , 6 , 8 , 8 , 2 , 2 , 2 , 2 , 4 , 1 , 8 , 8 , 1 , 1 , 4 , 4 , 5 , 6 , 8 , 2 , 2 , 4 , 4 , 2 , 2 , 1 , 8 , 8 , 8 , 1 , 1 , 4 , 4 , 6 , 8 , 2 , 2 , 5 , 4 , 2 , 2 , 2 , 1 , 8 , 8 , 1 , 6 , 6 , 6 , 6 , 8 , 8 , 2 , 2 , 2 , 7 , 2 , 2 , 1 , 8 , 8 , 6 , 6 , 1 , 8 , 6 , 8 , 8 , 4 , 4 , 2 , 2 , 2 , 2 , 1 , 8 , 8 , 6 , 5 , 1 , 1 , 6 , 8 , 8 , 8 , 8 , 8 , 2 , 2 , 7 , 1 , 8 , 8 , 1 , 8 , 4 , 8 , 6 , 6 , 6 , 6 , 6 , 8 , 4 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 4 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 1 , 7 , 8 , 8 , 8 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 1 , 1 ,
-  //LROOM 14
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  //Room 14
+  8 , 8 , 8 , 13 , 13 , 13 , 13 , 13 , 13 , 13 , 13 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 13 , 13 , 10 , 23 , 10 , 10 , 23 , 10 , 13 , 13 , 8 , 8 , 8 , 8 , 8 , 8 , 13 , 10 , 2 , 2 , 16 , 16 , 2 , 2 , 10 , 13 , 8 , 8 , 8 , 8 , 8 , 8 , 13 , 10 , 7 , 2 , 16 , 16 , 2 , 7 , 10 , 13 , 8 , 8 , 8 , 8 , 8 , 8 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 1 , 15 , 1 , 6 , 6 , 6 , 6 , 4 , 8 , 8 , 8 , 8 , 7 , 1 , 7 , 6 , 1 , 12 , 1 , 6 , 10 , 7 , 6 , 10 , 4 , 8 , 15 , 8 , 8 , 7 , 5 , 6 , 6 , 6 , 6 , 6 , 13 , 10 , 6 , 5 , 8 , 1 , 12 , 1 , 8 , 8 , 1 , 1 , 8 , 8 , 8 , 8 , 8 , 13 , 6 , 6 , 6 , 1 , 20 , 1 , 8 , 1 , 1 , 8 , 1 , 8 , 8 , 8 , 8 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 8 , 1 , 8 , 8 , 1 , 8 , 8 , 8 , 8 , 1 , 8 , 8 , 8 , 8 , 6 , 8 , 8 , 4 , 8 , 4 , 4 , 4 , 1 , 1 , 1 , 1 , 20 , 20 , 8 , 6 , 6 , 8 , 8 , 4 , 1 , 4 , 8 , 8 , 8 , 8 , 1 , 8 , 20 , 8 , 7 , 6 , 8 , 20 , 8 , 4 , 4 , 8 , 4 , 4 , 7 , 21 , 1 , 8 , 1 , 1 , 6 , 8 , 20 , 20 , 8 , 8 , 8 , 4 , 4 , 20 , 1 , 1 , 4 , 4 , 1 , 6 , 6 , 20 , 20 , 20 , 8 , 8 , 8 , 8 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 ,
   //ROOM 15
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
@@ -227,6 +260,9 @@ const PROGMEM byte TPRoom[TPNUM][2] = {
   {12, 13},
   {13, 12},
   {13, 12},
+  {13, 14},
+  {14, 13},
+  {14, 14},
 };
 //设置传送触发坐标和目标坐标 {{,}, {,},},
 const PROGMEM byte TPXY[TPNUM][2][2] = {
@@ -237,7 +273,10 @@ const PROGMEM byte TPXY[TPNUM][2][2] = {
   {{15, 11}, {0, 11}},
   {{15, 12}, {0, 12}},
   {{0, 11}, {15, 11}},
-  {{0, 12}, {15, 12}}
+  {{0, 12}, {15, 12}},
+  {{15, 5}, {0, 5}},
+  {{0, 5}, {15, 5}},
+  {{7, 14}, {7, 2}},
 };
 //设置传送触发方向和目标方向 {,},
 const PROGMEM byte TPC[TPNUM][2] = {
@@ -248,7 +287,10 @@ const PROGMEM byte TPC[TPNUM][2] = {
   {3, 3},
   {3, 3},
   {2, 2},
-  {2, 2}
+  {2, 2},
+  {3, 3},
+  {2, 2},
+  {0, 1},
 };
 /*=========================================================
                           中文字库
@@ -347,7 +389,7 @@ void key() {
   }
 }
 void draw_player(byte x, byte y) {
-  arduboy.drawBitmap(x-8 , y - 8 , T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
+  arduboy.drawBitmap(x - 8 , y - 8 , T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
   if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
     Timer[0] = millis();   //重置移动帧计时器
     player_dyn++; //下一个动态帧
@@ -379,8 +421,8 @@ void SBDP() {
   for (byte i = 0; i < length; i++) {
 
     if (pgm_read_byte(&MAP[ROOM][(Entity[0][1] + 8  * CPDY) / 16][(Entity[0][0] + 8 * CPDX) / 16]) == SBDPL[i]) LA = false;
-    if (Entity[0][0]+CPDX < 0 || Entity[0][0]+CPDX>=248||Entity[0][1]+CPDY < 0||Entity[0][1]+CPDY>=248) LA = false;
-    
+    if (Entity[0][0] + CPDX < 0 || Entity[0][0] + CPDX >= 248 || Entity[0][1] + CPDY < 0 || Entity[0][1] + CPDY >= 248) LA = false;
+
     // Serial.println(F("LA False"));
     //  Serial.println((Entity[0][0] + 4CPDX) / 16 );
     // Serial.println((Entity[0][1] + 4CPDY) / 16 );
@@ -463,7 +505,7 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 void setup() {
   arduboy.boot();
   arduboy.invert(DisplayInvert);
-  Serial.begin(115200);
+//  Serial.begin(115200);
   draw(); //渲染画面
 }
 void loop() {
