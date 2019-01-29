@@ -47,7 +47,7 @@ set /a mx=x-36
 set /a my=y-33
 set /a bx=mx/16
 set /a by=my/16
-title MAP:%map% map_x: %mx% map_y: %my% block_x: %bx% block_by: %by%
+title MAP:%map% map_xy: (%mx%,%my%) block_xy: (%bx%,%by%) id:!·½¿é_%·½¿éid%!
 choice /c wsadeqrpo /n >nul
 
 if %errorlevel%==1 (

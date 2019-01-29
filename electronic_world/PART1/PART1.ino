@@ -150,21 +150,21 @@ bool player_move = false; //玩家是否移动
 bool key_lock = false; //键盘锁
 bool move_lock = false; //方向锁
 bool dialog; //对话框
-bool LA=false; //行动许可 
+bool LA = false; //行动许可
 bool DisplayInvert = false;
 bool CN_text_BG = 0;
 byte ROOM = 9; //当前房间号
 byte DX, DY, CDX, CDY;
 byte PMX, PMY; //玩家在地图中的位置 0:x 1:y
 int CPDX, CPDY; //玩家朝向x和y轴
-byte PlayerD = 1; //最后方向 默认1 也就是下
+
 byte SBDPL[] = {2, 3, 5, 9, 10, 11, 12, 13, 14}; //障碍物id
-byte Entity[1][2] = {    //实体坐标
+int Entity[1][2] = {    //实体坐标
   {0, 0},   //注册为玩家
 };
 byte player_dyn = 0;     //玩家动态帧
-byte Man_direction = 1;    //玩家方向
-byte KeyBack = 255;          //按键返回
+byte PlayerD = 1;       //玩家方向
+byte KeyBack = 255;     //按键返回
 unsigned long Timer[4];  //时间列表 0 1 2 3对话框冷却
 byte room, room_f;
 /*=========================================================
@@ -265,12 +265,6 @@ PROGMEM const uint8_t misaki_font_0x00[1] = { 0x00 };
                              软重启函数
   ====================================================================*/
 void(* resetFunc) (void) = 0; //制造重启命令
-/*=========================================================
-                     只循环一次
-  =========================================================*/
-
-
-
 
 /*=========================================================
                      绘图
@@ -299,21 +293,7 @@ void DrawMap() {
       Entity[0][0] = PMX * 16;
       Entity[0][1] = PMY * 16;
       PlayerD = pgm_read_byte(&TPC[TPN][1]);
-    }/*else{
-      Serial.println(F("MAP_TP_FAIL"));
-      Serial.print(pgm_read_byte(TPRoom[TPN][0]));
-      Serial.print(F(" != "));
-      Serial.println(ROOM);
-      Serial.print(pgm_read_byte(TPXY[TPN][0][0]));
-      Serial.print(F(" != "));
-      Serial.println(PMX);
-      Serial.print(pgm_read_byte(TPXY[TPN][0][1]));
-      Serial.print(F(" != "));
-      Serial.println(PMY);
-      Serial.print(pgm_read_byte(TPC[TPN][0]));
-      Serial.print(F(" != "));
-      Serial.println(PlayerD);
-      }*/
+    }
   }
   int MapReadLimit[4]; //显示地图缓存读取范围 防止溢出死循环
   MapReadLimit[0] = PMX - 4;
@@ -367,7 +347,7 @@ void key() {
   }
 }
 void draw_player(byte x, byte y) {
-  arduboy.drawBitmap(x - 4, y - 4, T_Man_direction[Man_direction * 2 + player_move][player_dyn], 16, 16, 0);
+  arduboy.drawBitmap(x-8 , y - 8 , T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
   if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
     Timer[0] = millis();   //重置移动帧计时器
     player_dyn++; //下一个动态帧
@@ -397,36 +377,43 @@ void SBDP() {
   LA = true;
   byte length = sizeof(SBDPL) / sizeof(SBDPL[0]);
   for (byte i = 0; i < length; i++) {
-    if (pgm_read_byte(&MAP[ROOM][PMX + CPDX * 1][PMY + CPDY * 1]) == SBDPL[i]) LA = false;
+
+    if (pgm_read_byte(&MAP[ROOM][(Entity[0][1] + 8  * CPDY) / 16][(Entity[0][0] + 8 * CPDX) / 16]) == SBDPL[i]) LA = false;
+    if (Entity[0][0]+CPDX < 0 || Entity[0][0]+CPDX>=248||Entity[0][1]+CPDY < 0||Entity[0][1]+CPDY>=248) LA = false;
+    
+    // Serial.println(F("LA False"));
+    //  Serial.println((Entity[0][0] + 4CPDX) / 16 );
+    // Serial.println((Entity[0][1] + 4CPDY) / 16 );
+    // Serial.println(pgm_read_byte(&MAP[ROOM][(Entity[0][1] + CPDY) / 16][(Entity[0][0] + CPDX) / 16]));
+    //  Serial.println(length);
   }
 }
 void logic() {
+  /*
+     检测按键返回值 对相应方向进行移动障碍物判断
+  */
   if (KeyBack < 4) {
+    SBDP();
     player_move = true;
-    Man_direction = KeyBack;
   } else player_move = false;
   switch (KeyBack) {
     case 0:
       if (!move_lock) {
-        Entity[0][1]--;
         PlayerD = 0;
       }
       break;
     case 1:
       if (!move_lock) {
-        Entity[0][1]++;
         PlayerD = 1;
       }
       break;
     case 2:
       if (!move_lock) {
-        Entity[0][0]--;
         PlayerD = 2;
       }
       break;
     case 3:
       if (!move_lock) {
-        Entity[0][0]++;
         PlayerD = 3;
       }
       break;
@@ -437,14 +424,18 @@ void logic() {
       }
       break;
     case 5:
-
       break;
   }
-
-
+  /*
+     如果障碍物判断合法那么将会进行移动
+  */
+  if (player_move) SBDP();
+  if (LA) {
+    Entity[0][0] += CPDX;
+    Entity[0][1] += CPDY;
+    LA = false;
+  }
 }
-
-
 void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 {
   uint8_t pb;
@@ -472,35 +463,11 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 void setup() {
   arduboy.boot();
   arduboy.invert(DisplayInvert);
-  //Serial.begin(115200);
+  Serial.begin(115200);
   draw(); //渲染画面
 }
 void loop() {
   if (!key_lock) key();
   logic();
   draw();
-  /*
-    //键盘控制玩家部分
-    if (arduboy.pressed(UP_BUTTON)) {
-      PlayerD = 0;//设置玩家方向
-      CPDX = 0;
-      CPDY = -1;
-      SBDP();
-    } else if (arduboy.pressed(DOWN_BUTTON)) {
-      PlayerD = 1;//设置玩家方向
-      CPDX = 0;
-      CPDY = 1;
-      SBDP();
-    } else if (arduboy.pressed(LEFT_BUTTON)) {
-      PlayerD = 2;//设置玩家方向
-      CPDX = -1;
-      CPDY = 0;
-      SBDP();
-    } else if (arduboy.pressed(RIGHT_BUTTON)) {
-      PlayerD = 3;//设置玩家方向
-      CPDX = 1;
-      CPDY = 0;
-      SBDP();
-    }
-  */
 }
