@@ -1,15 +1,16 @@
 @echo off 2>nul 3>nul
 title 地图编辑器
-mode con cols=30 lines=15
+mode con cols=50 lines=30
 ::image载入内存
 %1start "" "tools\cmd.exe" "/c %~fs0 :"&exit
 color 79
 setlocal enabledelayedexpansion
 set /p a_bmp=请输入bmp：
 set /p map=请输入要编辑的地图:
+echo 创建地图中...
 if not exist %map%.dat echo.>>%map%.dat
 set b_bmp=data\image\%a_bmp%.bmp
-
+echo 正在导入资源文件
 set image=load %b_bmp% %a_bmp%
 set 角度=0
 ::set image=stretch mainbmp 16 16
@@ -25,8 +26,13 @@ echo %%a
 for /l %%a in (0,1,255) do (
 set 方块_%%a=0
 )
-
-  
+echo.
+echo.
+echo "=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-"
+echo.             地图编辑器 BY LHW
+echo.     wsad 移动精灵  q 重新加载目标精灵
+echo.     o 导出地图文件 e 把目标精灵写入地图工程文件
+echo "=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-=+-" 
 :run
 set image=cls
 set image=stretch bg 256 256
@@ -37,7 +43,11 @@ for /f "tokens=* delims= " %%a in (%map%.dat) do (
 %%a
 )
 set image=%a_bmp% %x% %y% 
-title %map% x: %x% y: %y% id:%方块id%
+set /a mx=x-36
+set /a my=y-33
+set /a bx=mx/16
+set /a by=my/16
+title MAP:%map% map_x: %mx% map_y: %my% block_x: %bx% block_by: %by%
 choice /c wsadeqrpo /n >nul
 
 if %errorlevel%==1 (
@@ -89,7 +99,7 @@ echo.!方块_%%a!,>>MAP_%map%.dat
 )
 for /f "tokens=*" %%i in (MAP_%map%.dat) do set n=!n! %%i
 del MAP_%map%.dat
-echo ^/^/LEVEL %map% >>MAP_%map%.dat
+echo ^/^/Room %map% >>MAP_%map%.dat
 echo %n%>>MAP_%map%.dat
 start "" MAP_%map%.dat
 goto :Eof
