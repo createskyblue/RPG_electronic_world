@@ -27,3 +27,4 @@ set image=load data\image\24.bmp 24
 set image=load data\image\25.bmp 25
 set image=load data\image\26.bmp 26
 set image=load data\image\27.bmp 27
+set image=load data\image\28.bmp 28

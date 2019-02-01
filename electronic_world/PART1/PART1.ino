@@ -11,17 +11,17 @@ bool dialog; //对话框
 bool LA = false; //行动许可
 bool DisplayInvert = false;
 bool CN_text_BG = 0;
-bool WOOPS=false; //世界崩坏开关
+bool WOOPS = false; //世界崩坏开关
+bool MoveTrue; //是否真移动
 
-byte ROOM = 7; //当前房间号
+
+byte ROOM; //当前房间号
 byte DX, DY, CDX, CDY;
 byte PMX, PMY; //玩家在地图中的位置 0:x 1:y
-
-
 int CPDX, CPDY; //玩家朝向x和y轴
 byte SBDPL[] = {2, 3, 5, 9, 10, 11, 12, 13, 14, 20, 21, 22, 24, 25, 26, 27}; //障碍物id
-int Entity[1][2] = {    //实体坐标
-  {208, 208},   //注册为玩家
+int Entity[1][3] = {    //实体坐标 以及ROOM
+  {192, 32, 11},  //玩家出生点
 };
 byte player_dyn = 0;     //玩家动态帧
 byte PlayerD = 1;       //玩家方向
@@ -34,12 +34,9 @@ byte room, room_f;
 #define dialog_cool_time 500
 #define mobile_frame_time 150
 #define key_cool_time 30
-#define player_move_cool_time 250
-#define MISAKI_FONT_F2_H
-#define MISAKI_FONT_F2_PAGE 0xF2
-#define MISAKI_FONT_F2_W 7
-#define MISAKI_FONT_F2_SIZE 0x46
-#define TPNUM 18 //传送门个数
+#define player_move_cool_time 50
+
+#define ETNUM 21 //事件个数
 #define BNUM 28 //方块个数
 /*=========================================================
                          位图
@@ -260,30 +257,41 @@ const PROGMEM byte MAP[16][16][16] = {
   //Room 15
   7 , 4 , 8 , 13 , 13 , 8 , 8 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 8 , 20 , 4 , 4 , 8 , 8 , 13 , 4 , 4 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 20 , 20 , 8 , 25 , 23 , 8 , 8 , 4 , 4 , 8 , 6 , 15 , 8 , 8 , 8 , 4 , 20 , 20 , 8 , 12 , 8 , 8 , 6 , 6 , 6 , 6 , 6 , 12 , 1 , 8 , 8 , 8 , 20 , 20 , 6 , 6 , 6 , 6 , 6 , 1 , 1 , 1 , 8 , 20 , 1 , 8 , 4 , 4 , 20 , 20 , 8 , 1 , 1 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 1 , 4 , 4 , 20 , 20 , 20 , 1 , 1 , 8 , 8 , 8 , 4 , 8 , 8 , 1 , 23 , 26 , 4 , 2 , 20 , 20 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 12 , 8 , 2 , 2 , 2 , 20 , 1 , 13 , 8 , 4 , 8 , 8 , 4 , 4 , 8 , 8 , 8 , 8 , 2 , 8 , 20 , 20 , 1 , 8 , 8 , 8 , 4 , 8 , 4 , 8 , 8 , 21 , 8 , 2 , 4 , 21 , 4 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 22 , 4 , 8 , 4 , 22 , 4 , 20 , 1 , 1 , 1 , 1 , 8 , 1 , 1 , 1 , 8 , 1 , 24 , 24 , 24 , 1 , 1 , 20 , 20 , 20 , 4 , 13 , 8 , 13 , 8 , 1 , 1 , 4 , 12 , 13 , 12 , 1 , 4 , 20 , 20 , 20 , 20 , 4 , 4 , 8 , 8 , 8 , 4 , 21 , 25 , 23 , 26 , 21 , 4 , 20 , 20 , 20 , 20 , 20 , 13 , 4 , 20 , 2 , 1 , 22 , 20 , 15 , 20 , 22 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 2 , 2 , 4 , 4 , 1 , 4 , 1 , 20 , 20 , 20 ,
 };
-//设置传送触发房间和目标房间 {,},
-const PROGMEM byte TPRoom[TPNUM][2] = {
-  {9, 8},
-  {8, 9},
-  {8, 12},
-  {12, 8},
-  {12, 13},
-  {12, 13},
-  {13, 12},
-  {13, 12},
-  {13, 14},
-  {14, 13},
-  {14, 14},
-  {14, 15},
-  {15, 14},
-  {15, 11},
-  {11, 15},
-  {11, 7},
-  {7, 11},
-  {7, 11},
-
+//事件触发房间和目标房间 {,,},  0-x 1-y 2-事件类型
+/*
+   事件类型: 0传送 1自动对话 2触发性对话  {触发房间，第二属性，事件类型}
+   传送第二属性为目标房间
+   对话第二属性为对话在 “对话尽进行”列表的位置
+*/
+const PROGMEM byte ETRoom[ETNUM][3] = {
+  {9, 8, 0},
+  {8, 9, 0},
+  {8, 12, 0},
+  {12, 8, 0},
+  {12, 13, 0},
+  {12, 13, 0},
+  {13, 12, 0},
+  {13, 12, 0},
+  {13, 14, 0},
+  {14, 13, 0},
+  {14, 14, 0},
+  {14, 15, 0},
+  {15, 14, 0},
+  {15, 11, 0},
+  {11, 15, 0},
+  {11, 7, 0},
+  {7, 11, 0},
+  {7, 11, 0},
+  {11, 7, 0},
+  {7, 11, 0},
+  {11, 0, 1}
 };
-//设置传送触发坐标和目标坐标 {{,}, {,}},
-const PROGMEM byte TPXY[TPNUM][2][2] = {
+/*事件触发坐标
+   如果事件类型为传送第二属性为目标坐标
+   对话类型第二属性{文本编号开始,文本编号结束}
+    {{,}, {,}},
+*/
+const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{0, 12}, {15, 12}},
   {{15, 12}, {0, 12}},
   {{9, 15}, {9, 0}},
@@ -302,10 +310,15 @@ const PROGMEM byte TPXY[TPNUM][2][2] = {
   {{4, 0}, {3, 15}},
   {{3, 15}, {4, 0}},
   {{4, 15}, {4, 0}},
-
+  {{13, 0}, {13, 15}},
+  {{13, 15}, {2, 14}},
+  {{12, 1}, {0, 2}},
 };
-//设置传送触发方向和目标方向 {,},
-const PROGMEM byte TPC[TPNUM][2] = {
+/*事件触发方向以及其他属性 {,},
+   传送类型 0-触发方向 1-目标方向
+   对话类型 0-触发方向 1-0
+*/
+const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
   {3, 3},
   {1, 1},
@@ -324,63 +337,150 @@ const PROGMEM byte TPC[TPNUM][2] = {
   {0, 0},
   {1, 1},
   {1, 1},
+  {0, 0},
+  {1, 1},
+  {0, 2},
 };
 /*=========================================================
                           中文字库
   =========================================================*/
+#define MISAKI_FONT_F2_H
+#define MISAKI_FONT_F2_PAGE 0xF2
+#define MISAKI_FONT_F2_W 7
+#define MISAKI_FONT_F2_SIZE 0x15
 PROGMEM const uint8_t misaki_font_f2[ MISAKI_FONT_F2_SIZE + 1 ][ MISAKI_FONT_F2_W ] =
 {
+  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x00 對 */
+  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x01 話 */
+  { 0x2a, 0x2e, 0x6a, 0x7f, 0x2a, 0x3e, 0x12 }, /* 0x02 事 */
+  { 0x04, 0x7e, 0x01, 0x14, 0x13, 0x7f, 0x12 }, /* 0x03 件 */
+  { 0x42, 0x3d, 0x7f, 0x4b, 0x75, 0x37, 0x7f }, /* 0x04 觸 */
+  { 0x0a, 0x55, 0x6b, 0x01, 0x5a, 0x2d, 0x5a }, /* 0x05 發 */
+  { 0x75, 0x00, 0x5f, 0x15, 0x5f, 0x0e, 0x7f }, /* 0x06 測 */
+  { 0x6a, 0x6b, 0x54, 0x74, 0x57, 0x3c, 0x45 }, /* 0x07 試 */
+  { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x08 這 */
+  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x09 是 */
+  { 0x44, 0x5b, 0x2e, 0x7c, 0x2b, 0x2e, 0x62 }, /* 0x0A 第 */
+  { 0x40, 0x42, 0x42, 0x42, 0x42, 0x42, 0x40 }, /* 0x0B 二 */
+  { 0x04, 0x7e, 0x5f, 0x3a, 0x75, 0x3b, 0x50 }, /* 0x0C 條 */
+  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x0D 對 */
+  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x0E 話 */
+  { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x0F 這 */
+  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x10 是 */
+  { 0x44, 0x5b, 0x2e, 0x7c, 0x2b, 0x2e, 0x62 }, /* 0x11 第 */
+  { 0x40, 0x42, 0x4a, 0x4a, 0x4a, 0x42, 0x40 }, /* 0x12 三 */
+  { 0x04, 0x7e, 0x5f, 0x3a, 0x75, 0x3b, 0x50 }, /* 0x13 條 */
+  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x14 對 */
+  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x15 話 */
 };
 /*=========================================================
-                          对话
+                          中文对话
   =========================================================*/
+#define MESNUM 3 //文本数量
+byte MesF[1]; //对应对话进行条数
 PROGMEM const uint8_t misaki_font_0x00[1] = { 0x00 };
 //PROGMEM const uint8_t mes[] =
+PROGMEM const uint8_t mes0[] = {0xf2, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,};
+PROGMEM const uint8_t mes1[] = { 0xf2, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x00, 0x01, };
+PROGMEM const uint8_t mes2[] = { 0xf2, 0x08, 0x09, 0x0a, 0x0d, 0x0c, 0x00, 0x01, };
+const unsigned char *MES[MESNUM] = {mes0, mes1, mes2};
+PROGMEM const uint8_t MESleng[] = {9, 9, 8};
 /*====================================================================
                              软重启函数
   ====================================================================*/
 void(* resetFunc) (void) = 0; //制造重启命令
-
+void test()
+{
+  arduboy.setCursor(0, 0);
+  arduboy.print("OK");
+  arduboy.display();
+  delay(500);
+}
 /*=========================================================
                      绘图
   =========================================================*/
-void draw() {
+void draw()
+{
   arduboy.clear();
   DrawMap();
   draw_player(64, 32);
+  Event();
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
   arduboy.display();
 }
 /*=========================================================
-                      地图操作
+                      事件
   =========================================================*/
-void DrawMap() {
+/*
+  事件类型: 0传送 1自动对话 2触发性对话
+*/
+void Event() {
   PMX = Entity[0][0] / 16;
   PMY = Entity[0][1] / 16;
-
-  for (byte TPN = 0; TPN < TPNUM; TPN++) { //遍历传送列表 检查是否到传送门
-    if (pgm_read_byte(&TPRoom[TPN][0]) == ROOM && pgm_read_byte(&TPXY[TPN][0][0]) == PMX && pgm_read_byte(&TPXY[TPN][0][1]) == PMY && pgm_read_byte(&TPC[TPN][0]) == PlayerD) {
-      //符合目标传送门跳转条件
-      ROOM = pgm_read_byte(&TPRoom[TPN][1]);
-      PMX = pgm_read_byte(&TPXY[TPN][1][0]);
-      PMY = pgm_read_byte(&TPXY[TPN][1][1]);
-      Entity[0][0] = PMX * 16;
-      Entity[0][1] = PMY * 16;
-      PlayerD = pgm_read_byte(&TPC[TPN][1]);
+  for (byte TPN = 0; TPN < ETNUM; TPN++) { //遍历传送列表 检查是否到传送门
+    if (pgm_read_byte(&ETRoom[TPN][0]) == ROOM && pgm_read_byte(&ETXY[TPN][0][0]) == PMX && pgm_read_byte(&ETXY[TPN][0][1]) == PMY && pgm_read_byte(&ETPC[TPN][0]) == PlayerD) {
+      switch (pgm_read_byte(&ETRoom[TPN][2])) {
+        case 0:
+          //符合目标传送门跳转条件
+          ROOM = pgm_read_byte(&ETRoom[TPN][1]);
+          PMX = pgm_read_byte(&ETXY[TPN][1][0]);
+          PMY = pgm_read_byte(&ETXY[TPN][1][1]);
+          Entity[0][0] = PMX * 16;
+          Entity[0][1] = PMY * 16;
+          PlayerD = pgm_read_byte(&ETPC[TPN][1]);
+          break;
+        case 1:
+          /* pgm_read_byte(&)  byte() F(" ,")
+             当前句    MesI
+             开始      pgm_read_byte(&ETXY[MesI][1][0])
+             结束      pgm_read_byte(&ETXY[MesI][1][1])
+             长度      pgm_read_byte(&MESleng[当前句])
+             文本内容  MES[MesI]
+             对话进度  MesF[当前句]
+          */
+          byte MesI = pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETXY[TPN][1][0])];
+          if (MesI <= pgm_read_byte(&ETXY[TPN][1][1])) {
+            drawText(0, 57, MES[MesI], pgm_read_byte(&MESleng[MesI]));
+            delay(150);
+            key();
+            if (KeyBack == 4) MesF[pgm_read_byte(&ETXY[TPN][1][0])]++;
+          }
+          break;
+      }
     }
   }
+}
+/*=========================================================
+                      地图操作
+  =========================================================*/
+void DrawMap()
+{
+  PMX = Entity[0][0] / 16;
+  PMY = Entity[0][1] / 16;
   int MapReadLimit[4]; //显示地图缓存读取范围 防止溢出死循环
   MapReadLimit[0] = PMX - 4;
   MapReadLimit[1] = PMX + 5;
   MapReadLimit[2] = PMY - 2;
   MapReadLimit[3] = PMY + 3;
-  if (MapReadLimit[0] < 0) CDX = 15 * (-MapReadLimit[0]); else CDX = 0;
-  if (MapReadLimit[2] < 0) CDY = 15 * (-MapReadLimit[2]); else CDY = 0;
+  if (MapReadLimit[0] < 0) {
+    CDX = 15 * (-MapReadLimit[0]);
+  } else {
+    CDX = 0;
+  }
+  if (MapReadLimit[2] < 0) {
+    CDY = 15 * (-MapReadLimit[2]);
+  } else {
+    CDY = 0;
+  }
   DX = CDX;
   DY = CDY;
   for (byte i = 0; i < 4; i++) {
-    if (MapReadLimit[i] < 0) MapReadLimit[i] = 0; else if (MapReadLimit[i] > 15) MapReadLimit[i] = 15;
+    if (MapReadLimit[i] < 0) {
+      MapReadLimit[i] = 0;
+    } else if (MapReadLimit[i] > 15) {
+      MapReadLimit[i] = 15;
+    }
   }
   byte CCDX, CCDY;
   for (byte MapReadY = MapReadLimit[2]; MapReadY <= MapReadLimit[3]; MapReadY++) {
@@ -392,7 +492,7 @@ void DrawMap() {
           arduboy.fillRect(DX - CCDX, DY - CCDY, 16, 16, 1);
           break;
         case 2:
-          arduboy.drawBitmap(DX - CCDX, DY - CCDY, Block[map(player_dyn, 0, 2, 0, 1)] , 16, 16, 1); //动态水
+          arduboy.drawBitmap(DX - CCDX, DY - CCDY, Block[map(player_dyn, 0, 2, 0, 1) + !WOOPS] , 16, 16, 1); //动态水
           break;
         case 28:
           arduboy.drawBitmap(DX - CCDX, DY - CCDY, Block[random(0, BNUM - 1)] , 16, 16, 1);
@@ -408,7 +508,8 @@ void DrawMap() {
   }
 }
 
-void key() {
+void key()
+{
   if (millis() >= key_cool_time + Timer[1]) {
     Timer[1] = millis();   //重置移动帧计时器
     /*
@@ -416,23 +517,39 @@ void key() {
         ↑ ↓← →  A  B
     */
     KeyBack = 255;
-    if (arduboy.pressed(UP_BUTTON)) KeyBack = 0;
-    if (arduboy.pressed(DOWN_BUTTON)) KeyBack = 1;
-    if (arduboy.pressed(LEFT_BUTTON)) KeyBack = 2;
-    if (arduboy.pressed(RIGHT_BUTTON)) KeyBack = 3;
-    if (arduboy.pressed(A_BUTTON)) KeyBack = 4;
-    if (arduboy.pressed(B_BUTTON)) KeyBack = 5;
+    if (arduboy.pressed(UP_BUTTON)) {
+      KeyBack = 0;
+    }
+    if (arduboy.pressed(DOWN_BUTTON)) {
+      KeyBack = 1;
+    }
+    if (arduboy.pressed(LEFT_BUTTON)) {
+      KeyBack = 2;
+    }
+    if (arduboy.pressed(RIGHT_BUTTON)) {
+      KeyBack = 3;
+    }
+    if (arduboy.pressed(A_BUTTON)) {
+      KeyBack = 4;
+    }
+    if (arduboy.pressed(B_BUTTON)) {
+      KeyBack = 5;
+    }
   }
 }
-void draw_player(byte x, byte y) {
+void draw_player(byte x, byte y)
+{
   arduboy.drawBitmap(x - 8 , y - 8 , T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
   if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
     Timer[0] = millis();   //重置移动帧计时器
     player_dyn++; //下一个动态帧
-    if (player_dyn >= 4) player_dyn = 0;
+    if (player_dyn >= 4) {
+      player_dyn = 0;
+    }
   }
 }
-void SBDP() {
+void SBDP()
+{
   //设置前一格方向向量
   switch (PlayerD) {
     case 0:
@@ -453,27 +570,35 @@ void SBDP() {
       break;
   }
   LA = true;
-  byte length = sizeof(SBDPL) / sizeof(SBDPL[0]);
-  for (byte i = 0; i < length; i++) {
-
-    if (pgm_read_byte(&MAP[ROOM][(Entity[0][1] + 8  * CPDY) / 16][(Entity[0][0] + 8 * CPDX) / 16]) == SBDPL[i]) LA = false;
-    if (Entity[0][0] + CPDX < 0 || Entity[0][0] + CPDX >= 248 || Entity[0][1] + CPDY < 0 || Entity[0][1] + CPDY >= 248) LA = false;
-
-    // Serial.println(F("LA False"));
-    //  Serial.println((Entity[0][0] + 4CPDX) / 16 );
-    // Serial.println((Entity[0][1] + 4CPDY) / 16 );
-    // Serial.println(pgm_read_byte(&MAP[ROOM][(Entity[0][1] + CPDY) / 16][(Entity[0][0] + CPDX) / 16]));
-    //  Serial.println(length);
+  if (Entity[0][0] + CPDX < 0 || Entity[0][0] + CPDX >= 247 || Entity[0][1] + CPDY < 0 || Entity[0][1] + CPDY >= 247) {
+    LA = false;
+  } else {
+    if (Entity[0][0] / 16 != ((Entity[0][0] + CPDX) / 16) || Entity[0][1] / 16 != ((Entity[0][1] + CPDY) / 16)) {
+      byte length = sizeof(SBDPL) / sizeof(SBDPL[0]);
+      for (byte i = 0; i < length; i++) {
+        if (pgm_read_byte(&MAP[ROOM][(Entity[0][1] + 8  * CPDY) / 16][(Entity[0][0] + 8 * CPDX) / 16]) == SBDPL[i]) {
+          LA = false;
+        }
+        // Serial.println(F("LA False"));
+        //  Serial.println((Entity[0][0] + 4CPDX) / 16 );
+        // Serial.println((Entity[0][1] + 4CPDY) / 16 );
+        // Serial.println(pgm_read_byte(&MAP[ROOM][(Entity[0][1] + CPDY) / 16][(Entity[0][0] + CPDX) / 16]));
+        //  Serial.println(length);
+      }
+    }
   }
 }
-void logic() {
+void logic()
+{
   /*
      检测按键返回值 对相应方向进行移动障碍物判断
   */
   if (KeyBack < 4) {
     SBDP();
     player_move = true;
-  } else player_move = false;
+  } else {
+    player_move = false;
+  }
   switch (KeyBack) {
     case 0:
       if (!move_lock) {
@@ -507,7 +632,9 @@ void logic() {
   /*
      如果障碍物判断合法那么将会进行移动
   */
-  if (player_move) SBDP();
+  if (player_move) {
+    SBDP();
+  }
   if (LA) {
     Entity[0][0] += CPDX;
     Entity[0][1] += CPDY;
@@ -533,19 +660,31 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
       x = screen_start;
       y = y + 8;
     }
+    arduboy.fillRect(x, y, 16, 8, 1); //白底
     arduboy.drawBitmap(x, y,  misaki_font_f2[ pb ], MISAKI_FONT_F2_W, 8, CN_text_BG);
     arduboy.drawBitmap(x + 7, y, misaki_font_0x00, 1, 8, CN_text_BG);
     x = x + 8;
   }
+  arduboy.setCursor(x, y + player_dyn);
+  arduboy.print(char(31));
 }
-void setup() {
+void setup()
+{
   arduboy.boot();
+  arduboy.setTextColor(0);
+  arduboy.setTextBackground(1);
   arduboy.invert(DisplayInvert);
-  //  Serial.begin(115200);
+  //Serial.begin(115200);
+  ROOM = Entity[0][2];
   draw(); //渲染画面
 }
-void loop() {
-  if (!key_lock) key();
+void loop()
+{
+  if (!key_lock) {
+    key();
+  }
   logic();
+
   draw();
+
 }
