@@ -33,7 +33,7 @@ byte room, room_f;
                          常量
   =========================================================*/
 #define BlinkEyesTime 5000
-#define dialog_cool_time 500
+#define dialog_cool_time 250
 #define mobile_frame_time 150
 #define key_cool_time 30
 #define player_move_cool_time 50
@@ -293,12 +293,13 @@ const PROGMEM byte MAP[16][16][16] = {
   //Room 15
   7 , 4 , 8 , 13 , 13 , 8 , 8 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 8 , 20 , 4 , 4 , 8 , 8 , 13 , 4 , 4 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 20 , 20 , 8 , 25 , 23 , 8 , 8 , 4 , 4 , 8 , 6 , 15 , 8 , 8 , 8 , 4 , 20 , 20 , 8 , 12 , 8 , 8 , 6 , 6 , 6 , 6 , 6 , 12 , 1 , 8 , 8 , 8 , 20 , 20 , 6 , 6 , 6 , 6 , 6 , 1 , 1 , 1 , 8 , 20 , 1 , 8 , 4 , 4 , 20 , 20 , 8 , 1 , 1 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 1 , 4 , 4 , 20 , 20 , 20 , 1 , 1 , 8 , 8 , 8 , 4 , 8 , 8 , 1 , 23 , 26 , 4 , 2 , 20 , 20 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 12 , 8 , 2 , 2 , 2 , 20 , 1 , 13 , 8 , 4 , 8 , 8 , 4 , 4 , 8 , 8 , 8 , 8 , 2 , 8 , 20 , 20 , 1 , 8 , 8 , 8 , 4 , 8 , 4 , 8 , 8 , 21 , 8 , 2 , 4 , 21 , 4 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 22 , 4 , 8 , 4 , 22 , 4 , 20 , 1 , 1 , 1 , 1 , 8 , 1 , 1 , 1 , 8 , 1 , 24 , 24 , 24 , 1 , 1 , 20 , 20 , 20 , 4 , 13 , 8 , 13 , 8 , 1 , 1 , 4 , 12 , 13 , 12 , 1 , 4 , 20 , 20 , 20 , 20 , 4 , 4 , 8 , 8 , 8 , 4 , 21 , 25 , 23 , 26 , 21 , 4 , 20 , 20 , 20 , 20 , 20 , 13 , 4 , 20 , 2 , 1 , 22 , 20 , 15 , 20 , 22 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 2 , 2 , 4 , 4 , 1 , 4 , 1 , 20 , 20 , 20 ,
 };
+
+#define ETNUM 31 //事件个数
 //事件触发房间和目标房间 {,,},  0-x 1-y 2-事件类型
-#define ETNUM 30 //事件个数
 /*
    事件类型: 0传送 1自动对话 2触发性对话  {触发房间，第二属性，事件类型}
    传送第二属性为目标房间
-   对话第二属性为对话在 “对话尽进行”列表的位置
+    对话第二属性为对话在 “对话进行”列表的位置
 */
 const PROGMEM byte ETRoom[ETNUM][3] = {
   {9, 8, 0},
@@ -331,6 +332,7 @@ const PROGMEM byte ETRoom[ETNUM][3] = {
   {11, 10, 0},
   {10, 6, 0},
   {6, 10, 0},
+  {11, 1, 1},
 };
 /*事件触发坐标
    如果事件类型为传送第二属性为目标坐标
@@ -358,7 +360,7 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{4, 15}, {4, 0}},
   {{13, 0}, {13, 15}},
   {{13, 15}, {2, 14}},
-  {{12, 1}, {0, 2}},
+  {{13, 1}, {0, 2}},
   {{15, 7}, {0, 7}},
   {{15, 8}, {0, 7}},
   {{0, 7}, {15, 7}},
@@ -368,10 +370,11 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{0, 7}, {15, 3}},
   {{3, 0}, {3, 15}},
   {{3, 15}, {3, 0}},
+  {{2, 14}, {3, 4}},
 };
 /*事件触发方向以及其他属性 {,},
    传送类型 0-触发方向 1-目标方向
-   对话类型 0-触发方向 1-0
+   对话类型 0-触发方向 1-是否重复触发
 */
 const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
@@ -394,7 +397,7 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {1, 1},
   {0, 0},
   {1, 1},
-  {0, 2},
+  {0, 1},
   {3, 3},
   {3, 3},
   {2, 2},
@@ -404,6 +407,7 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
   {0, 0},
   {1, 1},
+  {0, 1},
 };
 /*=========================================================
                           中文字库
@@ -411,44 +415,47 @@ const PROGMEM byte ETPC[ETNUM][2] = {
 #define MISAKI_FONT_F2_H
 #define MISAKI_FONT_F2_PAGE 0xF2
 #define MISAKI_FONT_F2_W 7
-#define MISAKI_FONT_F2_SIZE 0x15
+#define MISAKI_FONT_F2_SIZE 0x11
+/*
+   邏輯壞塊這項目真是不穩定難怪沒有投資
+*/
 PROGMEM const uint8_t misaki_font_f2[ MISAKI_FONT_F2_SIZE + 1 ][ MISAKI_FONT_F2_W ] =
 {
-  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x00 對 */
-  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x01 話 */
-  { 0x2a, 0x2e, 0x6a, 0x7f, 0x2a, 0x3e, 0x12 }, /* 0x02 事 */
-  { 0x04, 0x7e, 0x01, 0x14, 0x13, 0x7f, 0x12 }, /* 0x03 件 */
-  { 0x42, 0x3d, 0x7f, 0x4b, 0x75, 0x37, 0x7f }, /* 0x04 觸 */
-  { 0x0a, 0x55, 0x6b, 0x01, 0x5a, 0x2d, 0x5a }, /* 0x05 發 */
-  { 0x75, 0x00, 0x5f, 0x15, 0x5f, 0x0e, 0x7f }, /* 0x06 測 */
-  { 0x6a, 0x6b, 0x54, 0x74, 0x57, 0x3c, 0x45 }, /* 0x07 試 */
-  { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x08 這 */
-  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x09 是 */
-  { 0x44, 0x5b, 0x2e, 0x7c, 0x2b, 0x2e, 0x62 }, /* 0x0A 第 */
-  { 0x40, 0x42, 0x42, 0x42, 0x42, 0x42, 0x40 }, /* 0x0B 二 */
-  { 0x04, 0x7e, 0x5f, 0x3a, 0x75, 0x3b, 0x50 }, /* 0x0C 條 */
-  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x0D 對 */
-  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x0E 話 */
-  { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x0F 這 */
-  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x10 是 */
-  { 0x44, 0x5b, 0x2e, 0x7c, 0x2b, 0x2e, 0x62 }, /* 0x11 第 */
-  { 0x40, 0x42, 0x4a, 0x4a, 0x4a, 0x42, 0x40 }, /* 0x12 三 */
-  { 0x04, 0x7e, 0x5f, 0x3a, 0x75, 0x3b, 0x50 }, /* 0x13 條 */
-  { 0x4b, 0x5e, 0x3b, 0x2e, 0x09, 0x52, 0x7f }, /* 0x14 對 */
-  { 0x6a, 0x6b, 0x04, 0x76, 0x5e, 0x75, 0x04 }, /* 0x15 話 */
+  { 0x55, 0x30, 0x57, 0x7b, 0x53, 0x7f, 0x6b }, /* 0x00 邏 */
+  { 0x2d, 0x7f, 0x24, 0x3f, 0x2d, 0x7f, 0x24 }, /* 0x01 輯 */
+  { 0x24, 0x3f, 0x2a, 0x6e, 0x5f, 0x2a, 0x4e }, /* 0x02 壞 */
+  { 0x24, 0x3f, 0x5e, 0x2a, 0x7f, 0x6a, 0x5e }, /* 0x03 塊 */
+  { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x04 這 */
+  { 0x22, 0x3e, 0x12, 0x5d, 0x17, 0x15, 0x5d }, /* 0x05 項 */
+  { 0x00, 0x7f, 0x55, 0x55, 0x55, 0x55, 0x7f }, /* 0x06 目 */
+  { 0x52, 0x52, 0x1e, 0x1f, 0x1e, 0x52, 0x52 }, /* 0x07 真 */
+  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x08 是 */
+  { 0x11, 0x11, 0x09, 0x7f, 0x01, 0x09, 0x11 }, /* 0x09 不 */
+  { 0x35, 0x7f, 0x62, 0x35, 0x5f, 0x5d, 0x6a }, /* 0x0A 穩 */
+  { 0x46, 0x32, 0x46, 0x7f, 0x56, 0x52, 0x46 }, /* 0x0B 定 */
+  { 0x5a, 0x5f, 0x3a, 0x5f, 0x7f, 0x7e, 0x4b }, /* 0x0C 難 */
+  { 0x06, 0x7f, 0x49, 0x5b, 0x75, 0x5b, 0x48 }, /* 0x0D 怪 */
+  { 0x75, 0x00, 0x44, 0x5b, 0x29, 0x5d, 0x47 }, /* 0x0E 沒 */
+  { 0x12, 0x0a, 0x7f, 0x2a, 0x2a, 0x7a, 0x02 }, /* 0x0F 有 */
+  { 0x52, 0x7f, 0x44, 0x5b, 0x29, 0x5f, 0x44 }, /* 0x10 投 */
+  { 0x49, 0x70, 0x34, 0x3b, 0x36, 0x7a, 0x46 }, /* 0x11 資 */
 };
 /*=========================================================
                           中文对话
   =========================================================*/
-#define MESNUM 3 //文本数量
-byte MesF[1]; //对应对话进行条数
+#define MESNUM 5 //文本数量
+byte MesF[2]; //对应对话进行条数
 PROGMEM const uint8_t misaki_font_0x00[1] = { 0x00 };
-//PROGMEM const uint8_t mes[] =
-PROGMEM const uint8_t mes0[] = {0xf2, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,};
-PROGMEM const uint8_t mes1[] = { 0xf2, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x00, 0x01, };
-PROGMEM const uint8_t mes2[] = { 0xf2, 0x08, 0x09, 0x0a, 0x0d, 0x0c, 0x00, 0x01, };
-const unsigned char *MES[MESNUM] = {mes0, mes1, mes2};
-PROGMEM const uint8_t MESleng[] = {9, 9, 8};
+PROGMEM const uint8_t mes0[] = { 0xf2, 0x00, 0x01, 0x02, 0x03, }; //邏輯壞塊
+PROGMEM const uint8_t mes1[] = { 0xf2, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, }; //這項目真是不穩定
+PROGMEM const uint8_t mes2[] = { 0xf2, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, }; //難怪沒有投資
+PROGMEM const uint8_t mes3[] = { 0xf2, 0x12, 0x13, 0x14, 0x15, 0x16, 0x04, }; //居然傳送到這
+PROGMEM const uint8_t mes4[] = { 0xf2, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x07, 0x1d, }; //世界機的漏洞真多
+/*                                1     2     3     4      5     6     7    8     9
+  PROGMEM const uint8_t mes[] =
+*/
+const unsigned char *MES[MESNUM] = {mes0, mes1, mes2, mes3, mes4};
+PROGMEM const uint8_t MESleng[] = {5, 9, 7, 7, 9};
 /*====================================================================
                              软重启函数
   ====================================================================*/
@@ -482,39 +489,69 @@ void draw()
 void Event() {
   PMX = Entity[0][0] / 16;
   PMY = Entity[0][1] / 16;
-  for (byte TPN = 0; TPN < ETNUM; TPN++) { //遍历传送列表 检查是否到传送门
-    if (pgm_read_byte(&ETRoom[TPN][0]) == ROOM && pgm_read_byte(&ETXY[TPN][0][0]) == PMX && pgm_read_byte(&ETXY[TPN][0][1]) == PMY && pgm_read_byte(&ETPC[TPN][0]) == PlayerD) {
-      switch (pgm_read_byte(&ETRoom[TPN][2])) {
-        case 0:
-          //符合目标传送门跳转条件
-          ROOM = pgm_read_byte(&ETRoom[TPN][1]);
-          PMX = pgm_read_byte(&ETXY[TPN][1][0]);
-          PMY = pgm_read_byte(&ETXY[TPN][1][1]);
-          Entity[0][0] = PMX * 16;
-          Entity[0][1] = PMY * 16;
-          PlayerD = pgm_read_byte(&ETPC[TPN][1]);
-          break;
-        case 1:
-          /* pgm_read_byte(&)  byte() F(" ,")
-             当前句    MesI
-             开始      pgm_read_byte(&ETXY[MesI][1][0])
-             结束      pgm_read_byte(&ETXY[MesI][1][1])
-             长度      pgm_read_byte(&MESleng[当前句])
-             文本内容  MES[MesI]
-             对话进度  MesF[当前句]
-          */
-          byte MesI = pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETXY[TPN][1][0])];
-          if (MesI <= pgm_read_byte(&ETXY[TPN][1][1])) {
-            drawText(0, 57, MES[MesI], pgm_read_byte(&MESleng[MesI]));
-            delay(150);
+
+  for (byte TPN = 0; TPN < ETNUM; TPN++) { //遍历事件
+    /*
+      自动型事件
+    */
+    if (pgm_read_byte(&ETRoom[TPN][0]) == ROOM) {
+      if (pgm_read_byte(&ETXY[TPN][0][0]) == PMX && pgm_read_byte(&ETXY[TPN][0][1]) == PMY && pgm_read_byte(&ETPC[TPN][0]) == PlayerD) {
+        switch (pgm_read_byte(&ETRoom[TPN][2])) {
+          case 0:
+            //符合目标传送门跳转条件
+            ROOM = pgm_read_byte(&ETRoom[TPN][1]);
+            PMX = pgm_read_byte(&ETXY[TPN][1][0]);
+            PMY = pgm_read_byte(&ETXY[TPN][1][1]);
+            Entity[0][0] = PMX * 16;
+            Entity[0][1] = PMY * 16;
+            PlayerD = pgm_read_byte(&ETPC[TPN][1]);
+            break;
+          case 1:  //自动型对话
+            /* pgm_read_byte(&)  byte() F(" ,")
+               当前句    MesI
+               开始      pgm_read_byte(&ETXY[MesI][1][0])
+               结束      pgm_read_byte(&ETXY[MesI][1][1])
+               长度      pgm_read_byte(&MESleng[当前句])
+               文本内容  MES[MesI]
+               对话进度  MesF[当前句]
+            */
+
             key();
-            if (KeyBack == 4) MesF[pgm_read_byte(&ETXY[TPN][1][0])]++;
-          }
-          break;
-      }
+            if (millis() >= dialog_cool_time + Timer[2] && KeyBack == 4 && pgm_read_byte(&ETPC[TPN][1]) && pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETRoom[TPN][1])] > pgm_read_byte(&ETXY[TPN][1][1])) {
+              //当前对话为可重复触发类型，重置触发状态
+              MesF[pgm_read_byte(&ETRoom[TPN][1])] = 0;
+              Timer[2] = millis();
+            } else {
+              byte MesI = pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETRoom[TPN][1])];
+              if (MesI <= pgm_read_byte(&ETXY[TPN][1][1])) {
+                drawText(0, 57, MES[MesI], pgm_read_byte(&MESleng[MesI]));
+                if (millis() >= dialog_cool_time + Timer[2]) {
+                  Timer[2] = millis();
+                  key();
+                  if (KeyBack == 4) MesF[pgm_read_byte(&ETRoom[TPN][1])]++;
+                }
+              }
+            }
+
+            break;
+        }
+      } /*else {
+
+        key();
+        switch (KeyBack) {
+          case 4: //按下A键
+            if (pgm_read_byte(&ETXY[TPN][0][0]) == (Entity[0][1] + 8  * CPDY) / 16 && pgm_read_byte(&ETXY[TPN][0][1]) == (Entity[0][0] + 8 * CPDX) / 16 && pgm_read_byte(&ETRoom[TPN][2]) == 2) {
+              //手动触发对话
+            }
+            break;
+        }
+      }*/
     }
   }
 }
+/*
+   对话系统
+*/
 /*=========================================================
                       地图操作
   =========================================================*/
