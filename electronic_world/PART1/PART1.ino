@@ -13,8 +13,9 @@ bool DisplayInvert = false;
 bool CN_text_BG = 0;
 bool WOOPS = false; //世界崩坏开关
 bool MoveTrue; //是否真移动
+bool BEF; //是否完成眨眼动作
 
-
+byte BF; //眨眼帧
 byte ROOM; //当前房间号
 byte DX, DY, CDX, CDY;
 byte PMX, PMY; //玩家在地图中的位置 0:x 1:y
@@ -26,11 +27,12 @@ int Entity[1][3] = {    //实体坐标 以及ROOM
 byte player_dyn = 0;     //玩家动态帧
 byte PlayerD = 1;       //玩家方向
 byte KeyBack = 255;     //按键返回
-unsigned long Timer[4];  //时间列表 0 1 2 3对话框冷却
+unsigned long Timer[5];  //时间列表 0 1 2 3对话框冷却 4眨眼时间
 byte room, room_f;
 /*=========================================================
                          常量
   =========================================================*/
+#define BlinkEyesTime 5000
 #define dialog_cool_time 500
 #define mobile_frame_time 150
 #define key_cool_time 30
@@ -403,7 +405,7 @@ void draw()
 {
   arduboy.clear();
   DrawMap();
-  draw_player(64, 32);
+  draw_player(55, 23);
   Event();
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
@@ -539,7 +541,40 @@ void key()
 }
 void draw_player(byte x, byte y)
 {
-  arduboy.drawBitmap(x - 8 , y - 8 , T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
+  /*
+    皮肤
+  */
+  arduboy.drawBitmap(x , y, T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
+  /*
+    控制眨眼
+  */
+  if (millis() >= BlinkEyesTime + Timer[4] && player_dyn == 0 || !BEF) {
+    if (player_dyn == 0) BEF = false;
+    y += 4;
+    switch (PlayerD) {
+      case 1:
+        x += 6;
+        break;
+      case 2:
+        x += 3;
+        break;
+      case 3:
+        x += 10;
+        break;
+    }
+    //arduboy.drawPixel
+    for (byte i = 0; i <= 1; i++) {
+      arduboy.fillRect(x + 2 * i, y, 1, 2, 1);
+      arduboy.fillRect(x + 2 * i, y, 1, abs(int(2 - player_dyn)), 0);
+    }
+    if (player_dyn == 2) {
+      Timer[4] = millis();
+      BEF = true;
+    }
+  }
+  /*
+    下一动态帧
+  */
   if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
     Timer[0] = millis();   //重置移动帧计时器
     player_dyn++; //下一个动态帧
@@ -640,6 +675,8 @@ void logic()
     Entity[0][1] += CPDY;
     LA = false;
   }
+  BF++;
+  if (BF >= 5) BF = 0;
 }
 void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 {
