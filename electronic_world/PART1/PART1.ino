@@ -29,7 +29,7 @@ int Entity[1][3] = {    //实体坐标 以及ROOM
   {192, 32, 11},  //玩家出生点
 };
 unsigned long Timer[5];  //时间列表 0 1 2 3对话框冷却[没有用上] 4眨眼时间
-bool KarmaB[1];
+bool KarmaB[2]; //一次性业力列表
 /*=========================================================
                          常量
   =========================================================*/
@@ -318,7 +318,7 @@ const PROGMEM byte MAP[16][16][16] = {
   7 , 4 , 8 , 13 , 13 , 8 , 8 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 8 , 20 , 4 , 4 , 8 , 8 , 13 , 4 , 4 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 20 , 20 , 8 , 25 , 23 , 8 , 8 , 4 , 4 , 8 , 6 , 15 , 8 , 8 , 8 , 4 , 20 , 20 , 8 , 12 , 8 , 8 , 6 , 6 , 6 , 6 , 6 , 12 , 1 , 8 , 8 , 8 , 20 , 20 , 6 , 6 , 6 , 6 , 6 , 1 , 1 , 1 , 8 , 20 , 1 , 8 , 4 , 4 , 20 , 20 , 8 , 1 , 1 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 1 , 4 , 4 , 20 , 20 , 20 , 1 , 1 , 8 , 8 , 8 , 4 , 8 , 8 , 1 , 23 , 26 , 4 , 2 , 20 , 20 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 12 , 8 , 2 , 2 , 2 , 20 , 1 , 13 , 8 , 4 , 8 , 8 , 4 , 4 , 8 , 8 , 8 , 8 , 2 , 8 , 20 , 20 , 1 , 8 , 8 , 8 , 4 , 8 , 4 , 8 , 8 , 21 , 8 , 2 , 4 , 21 , 4 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 22 , 4 , 8 , 4 , 22 , 4 , 20 , 1 , 1 , 1 , 1 , 8 , 1 , 1 , 1 , 8 , 1 , 24 , 24 , 24 , 1 , 1 , 20 , 20 , 20 , 4 , 13 , 8 , 13 , 8 , 1 , 1 , 4 , 12 , 13 , 12 , 1 , 4 , 20 , 20 , 20 , 20 , 4 , 4 , 8 , 8 , 8 , 4 , 21 , 25 , 23 , 26 , 21 , 4 , 20 , 20 , 20 , 20 , 20 , 13 , 4 , 20 , 2 , 1 , 22 , 20 , 15 , 20 , 22 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 2 , 2 , 4 , 4 , 1 , 4 , 1 , 20 , 20 , 20 ,
 };
 
-#define ETNUM 32 //事件个数
+#define ETNUM 33 //事件个数
 //事件触发房间和目标房间 {,,},  0-x 1-y 2-事件类型
 /*
    事件类型: 0传送 1自动对话  {触发房间，第二属性，事件类型} 2业力
@@ -337,6 +337,7 @@ const PROGMEM byte ETRoom[ETNUM][3] = {
   {13, 12, 0},
   {13, 14, 0},
   {14, 13, 0},
+  {14, 1, 2},     //公园魔法阵残余业力
   {14, 14, 0},
   {14, 15, 0},
   {15, 14, 0},
@@ -346,10 +347,8 @@ const PROGMEM byte ETRoom[ETNUM][3] = {
   {7, 11, 0},
   {7, 11, 0},
   {11, 7, 0},
-
   {7, 0, 2},  //崩塌区块离开时候触发
   {7, 11, 0},
-
   {11, 0, 1},
   {6, 7, 0},
   {6, 7, 0},
@@ -379,6 +378,7 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{0, 12}, {15, 12}},
   {{15, 5}, {0, 5}},
   {{0, 5}, {15, 5}},
+  {{7, 14}, {1, 1}}, //公园魔法阵残余业力
   {{7, 14}, {7, 2}},
   {{15, 4}, {0, 4}},
   {{0, 4}, {15, 4}},
@@ -388,12 +388,8 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{3, 15}, {4, 0}},
   {{4, 15}, {4, 0}},
   {{13, 0}, {13, 15}},
-
-
   {{13, 15}, {1, 0}},//崩塌区块离开时候触发
   {{13, 15}, {2, 14}},
-
-
   {{13, 1}, {0, 1}},
   {{15, 7}, {0, 7}},
   {{15, 8}, {0, 7}},
@@ -422,6 +418,7 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
   {3, 3},
   {2, 2},
+  {0, 0}, //公园魔法阵残余业力
   {0, 1},
   {3, 3},
   {2, 2},
@@ -431,21 +428,19 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {1, 1},
   {1, 1},
   {0, 0},
-
+  {1, 0},//崩塌区块离开时候触发
+  {1, 1},
+  {0, 0},
+  {3, 3},
+  {3, 3},
+  {2, 2},
+  {3, 3},
+  {2, 2},
+  {3, 3},
+  {2, 2},
+  {0, 0},
+  {1, 1},
   {1, 0},
-  {1, 1},
-
-  {0, 0},
-  {3, 3},
-  {3, 3},
-  {2, 2},
-  {3, 3},
-  {2, 2},
-  {3, 3},
-  {2, 2},
-  {0, 0},
-  {1, 1},
-  {1, 1},
 };
 /*=========================================================
                           中文字库
@@ -677,12 +672,14 @@ void Event() {
              是否重复触发   pgm_read_byte(&ETP[TPN][1])
           */
           case 2:
-            if (KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] == false || pgm_read_byte(&ETPC[TPN][1] == 1)) {
-            char KC = pgm_read_byte(&ETXY[TPN][1][0]);
+            if (KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] == false || pgm_read_byte(&ETPC[TPN][1])==1) {
+              char KC = pgm_read_byte(&ETXY[TPN][1][0]);
               if (pgm_read_byte(&ETRoom[TPN][1]) == 0) KC = -KC;
               KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] = true;
+              KarmaCutscenes(0);
               DrawKarma(KC);
-              delay(250);
+              DrawKarma(0);
+              delay(1000);
             }
             break;
         }
@@ -739,6 +736,7 @@ void DrawRune(int x, int y, byte K)
 void DrawKarma(char KC)
 {
   //KC 业力变动范围 -1 0 1
+  if (Karma + KC >= 0 && Karma + KC <= 10) Karma += KC;
   for (char KCY = 14 * KC;;) {
     arduboy.clear();
     DrawMap();
@@ -749,16 +747,32 @@ void DrawKarma(char KC)
         if (i != 2) Blur(8, -7 + i * 15 - KCY, 22, +7 + i * 15 - KCY, 1);
       }
     }
+    //当前业力符文外圈浮动效果
+  arduboy.drawCircle(15, 30, 10 + player_dyn, 1);
+  arduboy.drawCircle(15, 30, 11 + player_dyn, 0);
+  arduboy.drawCircle(15, 30, 12 + player_dyn, 1);
     arduboy.display();
     if (KC < 0) KCY++; else if (KC > 0) KCY--;
     if (KCY == 0) break;
   }
-  if (Karma + KC >= 0 && Karma + KC <= 10) Karma += KC;
   KC = 0;
-  //当前业力符文外圈浮动效果
-  arduboy.drawCircle(15, 30, 10 + player_dyn, 1);
-  arduboy.drawCircle(15, 30, 11 + player_dyn, 0);
-  arduboy.drawCircle(15, 30, 12 + player_dyn, 1);
+}
+/*
+* 业力符文过场动画  BKS=t 则按B键可退出
+*/
+void KarmaCutscenes(bool BKS)
+{
+  for (byte KF = 49; KF > 24; KF--) {
+    if (BKS) {
+     key();
+     if (KeyBack != 5) break;
+    }
+    arduboy.clear();
+    DrawMap();
+    draw_player(55, 23);
+    DrawRune(map(KF, 49, 24, 0, 7), KF, Karma - 1);
+    arduboy.display();
+  }
 }
 /*
    地图场景
@@ -866,16 +880,7 @@ void draw_player(byte x, byte y)
 */
 void InfoMenu()
 {
-
-  for (byte KF = 49; KF > 24; KF--) {
-    key();
-    if (KeyBack != 5) break;
-    arduboy.clear();
-    DrawMap();
-    draw_player(55, 23);
-    DrawRune(map(KF, 49, 24, 0, 7), KF, Karma - 1);
-    arduboy.display();
-  }
+  KarmaCutscenes(0);
   while (KeyBack == 5) {
     key();
     DrawKarma(0);
