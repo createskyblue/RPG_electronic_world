@@ -15,21 +15,21 @@ bool WOOPS = false; //世界崩坏开关
 bool MoveTrue; //是否真移动
 bool BEF; //是否完成眨眼动作
 
-byte Karma = 3; //业力值1-10  10:游戏结束
+byte Karma = 2; //业力值1-10  10:游戏结束
 byte BF; //眨眼帧
 byte ROOM; //当前房间号
 byte DX, DY, CDX, CDY;
 byte PMX, PMY; //玩家在地图中的位置 0:x 1:y
 int CPDX, CPDY; //玩家朝向x和y轴
+byte player_dyn = 0;     //玩家动态帧
+byte PlayerD = 1;       //玩家方向
+byte KeyBack = 255;     //按键返回
 byte SBDPL[] = {2, 5, 9, 10, 11, 12, 13, 14, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36}; //障碍物id
 int Entity[1][3] = {    //实体坐标 以及ROOM
   {192, 32, 11},  //玩家出生点
 };
-byte player_dyn = 0;     //玩家动态帧
-byte PlayerD = 1;       //玩家方向
-byte KeyBack = 255;     //按键返回
-unsigned long Timer[5];  //时间列表 0 1 2 3对话框冷却 4眨眼时间
-byte room, room_f;
+unsigned long Timer[5];  //时间列表 0 1 2 3对话框冷却[没有用上] 4眨眼时间
+bool KarmaB[1];
 /*=========================================================
                          常量
   =========================================================*/
@@ -318,12 +318,13 @@ const PROGMEM byte MAP[16][16][16] = {
   7 , 4 , 8 , 13 , 13 , 8 , 8 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 8 , 20 , 4 , 4 , 8 , 8 , 13 , 4 , 4 , 4 , 8 , 6 , 8 , 8 , 8 , 8 , 20 , 20 , 8 , 25 , 23 , 8 , 8 , 4 , 4 , 8 , 6 , 15 , 8 , 8 , 8 , 4 , 20 , 20 , 8 , 12 , 8 , 8 , 6 , 6 , 6 , 6 , 6 , 12 , 1 , 8 , 8 , 8 , 20 , 20 , 6 , 6 , 6 , 6 , 6 , 1 , 1 , 1 , 8 , 20 , 1 , 8 , 4 , 4 , 20 , 20 , 8 , 1 , 1 , 1 , 1 , 8 , 8 , 1 , 1 , 1 , 1 , 4 , 4 , 20 , 20 , 20 , 1 , 1 , 8 , 8 , 8 , 4 , 8 , 8 , 1 , 23 , 26 , 4 , 2 , 20 , 20 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 12 , 8 , 2 , 2 , 2 , 20 , 1 , 13 , 8 , 4 , 8 , 8 , 4 , 4 , 8 , 8 , 8 , 8 , 2 , 8 , 20 , 20 , 1 , 8 , 8 , 8 , 4 , 8 , 4 , 8 , 8 , 21 , 8 , 2 , 4 , 21 , 4 , 20 , 1 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 8 , 22 , 4 , 8 , 4 , 22 , 4 , 20 , 1 , 1 , 1 , 1 , 8 , 1 , 1 , 1 , 8 , 1 , 24 , 24 , 24 , 1 , 1 , 20 , 20 , 20 , 4 , 13 , 8 , 13 , 8 , 1 , 1 , 4 , 12 , 13 , 12 , 1 , 4 , 20 , 20 , 20 , 20 , 4 , 4 , 8 , 8 , 8 , 4 , 21 , 25 , 23 , 26 , 21 , 4 , 20 , 20 , 20 , 20 , 20 , 13 , 4 , 20 , 2 , 1 , 22 , 20 , 15 , 20 , 22 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 2 , 2 , 4 , 4 , 1 , 4 , 1 , 20 , 20 , 20 ,
 };
 
-#define ETNUM 31 //事件个数
+#define ETNUM 32 //事件个数
 //事件触发房间和目标房间 {,,},  0-x 1-y 2-事件类型
 /*
-   事件类型: 0传送 1自动对话 2触发性对话  {触发房间，第二属性，事件类型} 3一次性触发增加业力
+   事件类型: 0传送 1自动对话  {触发房间，第二属性，事件类型} 2业力
     传送第二属性为目标房间
     对话第二属性为对话在 “对话进行”列表的位置
+    业力第二属性为增加业力等级或减少业力等级 0为减少 1为增加
 */
 const PROGMEM byte ETRoom[ETNUM][3] = {
   {9, 8, 0},
@@ -345,7 +346,10 @@ const PROGMEM byte ETRoom[ETNUM][3] = {
   {7, 11, 0},
   {7, 11, 0},
   {11, 7, 0},
+
+  {7, 0, 2},  //崩塌区块离开时候触发
   {7, 11, 0},
+
   {11, 0, 1},
   {6, 7, 0},
   {6, 7, 0},
@@ -361,6 +365,7 @@ const PROGMEM byte ETRoom[ETNUM][3] = {
 /*事件触发坐标
    如果事件类型为传送第二属性为目标坐标
    对话类型第二属性{文本编号开始,文本编号结束}
+   业力类型第二属性{变化多少业力,业力记忆编号}
     {{,}, {,}},
 */
 const PROGMEM byte ETXY[ETNUM][2][2] = {
@@ -383,8 +388,13 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{3, 15}, {4, 0}},
   {{4, 15}, {4, 0}},
   {{13, 0}, {13, 15}},
+
+
+  {{13, 15}, {1, 0}},//崩塌区块离开时候触发
   {{13, 15}, {2, 14}},
-  {{13, 1}, {0, 2}},
+
+
+  {{13, 1}, {0, 1}},
   {{15, 7}, {0, 7}},
   {{15, 8}, {0, 7}},
   {{0, 7}, {15, 7}},
@@ -394,11 +404,12 @@ const PROGMEM byte ETXY[ETNUM][2][2] = {
   {{0, 7}, {15, 3}},
   {{3, 0}, {3, 15}},
   {{3, 15}, {3, 0}},
-  {{2, 14}, {3, 4}},
+  {{2, 14}, {2, 4}},
 };
 /*事件触发方向以及其他属性 {,},
    传送类型 0-触发方向 1-目标方向
    对话类型 0-触发方向 1-是否重复触发
+   业力类型 0-触发方向 1-是否重复触发
 */
 const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
@@ -420,7 +431,10 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {1, 1},
   {1, 1},
   {0, 0},
+
+  {1, 0},
   {1, 1},
+
   {0, 0},
   {3, 3},
   {3, 3},
@@ -431,7 +445,7 @@ const PROGMEM byte ETPC[ETNUM][2] = {
   {2, 2},
   {0, 0},
   {1, 1},
-  {0, 0},
+  {1, 1},
 };
 /*=========================================================
                           中文字库
@@ -567,12 +581,7 @@ void logic()
         PlayerD = 3;
       }
       break;
-    case 4:
-      if (dialog && millis() >= dialog_cool_time + Timer[3]) {
-        room_f++;
-        Timer[3] = millis();
-      }
-      break;
+
     case 5:
       InfoMenu();
       break;
@@ -596,7 +605,7 @@ void logic()
                       事件
   =========================================================*/
 /*
-  事件类型: 0传送 1自动对话 2触发性对话
+  事件类型: 0传送 1自动对话 2触发性对话 3业力增加 4业力减少
 */
 void Event() {
   PMX = Entity[0][0] / 16;
@@ -657,7 +666,24 @@ void Event() {
                 }
               }
             }
+            break;
+          /*
+             业力事件
 
+             业力记忆表     KarmaB[]
+             业力减或增     pgm_read_byte(&ETRoom[TPN][1])
+             变化多少业力   pgm_read_byte(&ETXY[TPN][1][0])
+             业力记忆表编号 pgm_read_byte(&ETXY[TPN][1][1])
+             是否重复触发   pgm_read_byte(&ETP[TPN][1])
+          */
+          case 2:
+            if (KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] == false || pgm_read_byte(&ETPC[TPN][1] == 1)) {
+            char KC = pgm_read_byte(&ETXY[TPN][1][0]);
+              if (pgm_read_byte(&ETRoom[TPN][1]) == 0) KC = -KC;
+              KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] = true;
+              DrawKarma(KC);
+              delay(250);
+            }
             break;
         }
       } /*else {
@@ -692,20 +718,47 @@ void draw()
   arduboy.clear();
   DrawMap();
   draw_player(55, 23);
-  DrawKarma(0, 49, Karma - 1);
+  DrawRune(0, 49, Karma - 1);
   Event();
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
   arduboy.display();
 }
 /*
-   符文业力
+   显示符文
 */
-void DrawKarma(int x, int y, byte K)
+void DrawRune(int x, int y, byte K)
 {
   arduboy.fillCircle(x + 7, y + 7, 7, 1);
   arduboy.drawCircle(x + 7, y + 7, 7, 0);
   arduboy.drawBitmap(x + 4, y + 3, Rune[K], 8, 8, 0);
+}
+/*
+   业力条
+*/
+void DrawKarma(char KC)
+{
+  //KC 业力变动范围 -1 0 1
+  for (char KCY = 14 * KC;;) {
+    arduboy.clear();
+    DrawMap();
+    draw_player(55, 23);
+    for (byte i = 0; i < 6; i++) {
+      if (Karma + 1 - i >= 0 && Karma + 1 - i < 10) {
+        DrawRune(8, -7 + i * 15 - KCY, Karma + 1 - i);
+        if (i != 2) Blur(8, -7 + i * 15 - KCY, 22, +7 + i * 15 - KCY, 1);
+      }
+    }
+    arduboy.display();
+    if (KC < 0) KCY++; else if (KC > 0) KCY--;
+    if (KCY == 0) break;
+  }
+  if (Karma + KC >= 0 && Karma + KC <= 10) Karma += KC;
+  KC = 0;
+  //当前业力符文外圈浮动效果
+  arduboy.drawCircle(15, 30, 10 + player_dyn, 1);
+  arduboy.drawCircle(15, 30, 11 + player_dyn, 0);
+  arduboy.drawCircle(15, 30, 12 + player_dyn, 1);
 }
 /*
    地图场景
@@ -820,24 +873,14 @@ void InfoMenu()
     arduboy.clear();
     DrawMap();
     draw_player(55, 23);
-    DrawKarma(map(KF,49,24,0,7), KF, Karma - 1);
+    DrawRune(map(KF, 49, 24, 0, 7), KF, Karma - 1);
     arduboy.display();
   }
   while (KeyBack == 5) {
     key();
-    arduboy.clear();
-    //地图以及玩家
-    DrawMap();
-    draw_player(55, 23);
-    //业力符文
-    for (byte i = 0; i < 6; i++) {
-      DrawKarma(8, -7 + i * 15, Karma + 1 - i);
-      if (i != 2) Blur(8, -7 + i * 15, 22, +7 + i * 15, 1);
-    }
-    //当前业力符文外圈浮动效果
-    arduboy.drawCircle(15,30,10+player_dyn,1);
-    arduboy.drawCircle(15,30,11+player_dyn,0);
-    arduboy.drawCircle(15,30,12+player_dyn,1);
+    DrawKarma(0);
+
+
     arduboy.display();
   }
 }
