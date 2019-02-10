@@ -15,6 +15,7 @@ bool WOOPS = false; //世界崩坏开关
 bool MoveTrue; //是否真移动
 bool BEF; //是否完成眨眼动作
 
+byte Karma = 3; //业力值1-10  10:游戏结束
 byte BF; //眨眼帧
 byte ROOM; //当前房间号
 byte DX, DY, CDX, CDY;
@@ -178,7 +179,30 @@ const unsigned char *Block[BNUM] = {
   Block_31, Block_32, Block_33, Block_34, Block_35,
   Block_36,
 };
-
+/*
+   业力符文 1-10 普通符文11-18
+   const uint8_t Karma_[] PROGMEM = {};
+   const uint8_t Rune_[] PROGMEM = {};
+*/
+const uint8_t Karma_1[] PROGMEM = {0x40, 0x41, 0x42, 0x44, 0x48, 0x50, 0x60, 0x40,};
+const uint8_t Karma_2[] PROGMEM = {0xc2, 0xb4, 0x8c, 0x82, 0x81, 0x8e, 0xb0, 0xc0,};
+const uint8_t Karma_3[] PROGMEM = {0xc2, 0x34, 0x0c, 0x02, 0x81, 0x8e, 0xb0, 0xc0,};
+const uint8_t Karma_4[] PROGMEM = {0xff, 0x11, 0x11, 0x11, 0x81, 0x81, 0x81, 0xff,};
+const uint8_t Karma_5[] PROGMEM = {0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xff,};
+const uint8_t Karma_6[] PROGMEM = {0xff, 0x91, 0x91, 0x91, 0x91, 0x91, 0x91, 0x9f,};
+const uint8_t Karma_7[] PROGMEM = {0xff, 0x91, 0x91, 0x91, 0xf1, 0x91, 0x91, 0x9f,};
+const uint8_t Karma_8[] PROGMEM = {0xff, 0x91, 0x92, 0x94, 0x98, 0x90, 0x80, 0x00,};
+const uint8_t Karma_9[] PROGMEM = {0xff, 0x90, 0x90, 0x90, 0x90, 0x90, 0x80, 0x00,};
+const uint8_t Karma_10[] PROGMEM = {0x00, 0x20, 0x1e, 0x10, 0x14, 0x10, 0x00, 0x00,};
+const uint8_t Rune_1[] PROGMEM = {0x00, 0x22, 0x22, 0x3e, 0x02, 0x02, 0x3e, 0x00,};
+const uint8_t Rune_2[] PROGMEM = {0x00, 0x70, 0x08, 0x0e, 0x30, 0x40, 0x30, 0x0e,};
+const uint8_t Rune_3[] PROGMEM = {0x10, 0x28, 0x28, 0x54, 0x44, 0xff, 0x02, 0x02,};
+const uint8_t Rune_4[] PROGMEM = {0x00, 0x18, 0x08, 0x7d, 0x48, 0x48, 0x78, 0x00,};
+const uint8_t Rune_5[] PROGMEM = {0x00, 0x0c, 0x10, 0x11, 0x3c, 0x52, 0x42, 0x3c,};
+const uint8_t Rune_6[] PROGMEM = {0x3c, 0x42, 0x89, 0x8d, 0x81, 0xa1, 0x42, 0x3c,};
+const uint8_t Rune_7[] PROGMEM = {0x00, 0x00, 0xff, 0x42, 0x24, 0x24, 0x42, 0x00,};
+const uint8_t Rune_8[] PROGMEM = {0x00, 0xff, 0x0a, 0x14, 0x28, 0x50, 0xff, 0x00,};
+const unsigned char *Rune[18] = {Karma_1, Karma_2, Karma_3, Karma_4, Karma_5, Karma_6, Karma_7, Karma_8, Karma_9, Karma_10, Rune_1, Rune_2, Rune_3, Rune_4, Rune_5, Rune_6, Rune_7, Rune_8,};
 /*
   玩家
 */
@@ -297,8 +321,8 @@ const PROGMEM byte MAP[16][16][16] = {
 #define ETNUM 31 //事件个数
 //事件触发房间和目标房间 {,,},  0-x 1-y 2-事件类型
 /*
-   事件类型: 0传送 1自动对话 2触发性对话  {触发房间，第二属性，事件类型}
-   传送第二属性为目标房间
+   事件类型: 0传送 1自动对话 2触发性对话  {触发房间，第二属性，事件类型} 3一次性触发增加业力
+    传送第二属性为目标房间
     对话第二属性为对话在 “对话进行”列表的位置
 */
 const PROGMEM byte ETRoom[ETNUM][3] = {
@@ -415,42 +439,39 @@ const PROGMEM byte ETPC[ETNUM][2] = {
 #define MISAKI_FONT_F2_H
 #define MISAKI_FONT_F2_PAGE 0xF2
 #define MISAKI_FONT_F2_W 7
-#define MISAKI_FONT_F2_SIZE 0x1D
+#define MISAKI_FONT_F2_SIZE 0x1A
 /*
-   邏輯壞塊這項目真是不穩定難怪沒有投資居然傳送到世界機的漏洞多
+   前面居然這異世界真不穩定危險暫時逃過一劫業力足讓我回去
 */
 PROGMEM const uint8_t misaki_font_f2[ MISAKI_FONT_F2_SIZE + 1 ][ MISAKI_FONT_F2_W ] =
 {
-  { 0x55, 0x30, 0x57, 0x7b, 0x53, 0x7f, 0x6b }, /* 0x00 邏 */
-  { 0x2d, 0x7f, 0x24, 0x3f, 0x2d, 0x7f, 0x24 }, /* 0x01 輯 */
-  { 0x24, 0x3f, 0x2a, 0x6e, 0x5f, 0x2a, 0x4e }, /* 0x02 壞 */
-  { 0x24, 0x3f, 0x5e, 0x2a, 0x7f, 0x6a, 0x5e }, /* 0x03 塊 */
+  { 0x7a, 0x2a, 0x7b, 0x02, 0x1a, 0x43, 0x7a }, /* 0x00 前 */
+  { 0x7d, 0x45, 0x7d, 0x57, 0x7d, 0x45, 0x7d }, /* 0x01 面 */
+  { 0x40, 0x3f, 0x0b, 0x6b, 0x7f, 0x6b, 0x0b }, /* 0x02 居 */
+  { 0x54, 0x13, 0x4d, 0x07, 0x52, 0x0f, 0x52 }, /* 0x03 然 */
   { 0x49, 0x3a, 0x40, 0x62, 0x6b, 0x6b, 0x62 }, /* 0x04 這 */
-  { 0x22, 0x3e, 0x12, 0x5d, 0x17, 0x15, 0x5d }, /* 0x05 項 */
-  { 0x00, 0x7f, 0x55, 0x55, 0x55, 0x55, 0x7f }, /* 0x06 目 */
-  { 0x52, 0x52, 0x1e, 0x1f, 0x1e, 0x52, 0x52 }, /* 0x07 真 */
-  { 0x44, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x44 }, /* 0x08 是 */
+  { 0x50, 0x57, 0x1d, 0x17, 0x1d, 0x57, 0x50 }, /* 0x05 異 */
+  { 0x04, 0x7f, 0x44, 0x5f, 0x54, 0x5f, 0x44 }, /* 0x06 世 */
+  { 0x20, 0x5f, 0x35, 0x1f, 0x75, 0x1f, 0x20 }, /* 0x07 界 */
+  { 0x52, 0x52, 0x1e, 0x1f, 0x1e, 0x52, 0x52 }, /* 0x08 真 */
   { 0x11, 0x11, 0x09, 0x7f, 0x01, 0x09, 0x11 }, /* 0x09 不 */
   { 0x35, 0x7f, 0x62, 0x35, 0x5f, 0x5d, 0x6a }, /* 0x0A 穩 */
   { 0x46, 0x32, 0x46, 0x7f, 0x56, 0x52, 0x46 }, /* 0x0B 定 */
-  { 0x5a, 0x5f, 0x3a, 0x5f, 0x7f, 0x7e, 0x4b }, /* 0x0C 難 */
-  { 0x06, 0x7f, 0x49, 0x5b, 0x75, 0x5b, 0x48 }, /* 0x0D 怪 */
-  { 0x75, 0x00, 0x44, 0x5b, 0x29, 0x5d, 0x47 }, /* 0x0E 沒 */
-  { 0x12, 0x0a, 0x7f, 0x2a, 0x2a, 0x7a, 0x02 }, /* 0x0F 有 */
-  { 0x52, 0x7f, 0x44, 0x5b, 0x29, 0x5f, 0x44 }, /* 0x10 投 */
-  { 0x49, 0x70, 0x34, 0x3b, 0x36, 0x7a, 0x46 }, /* 0x11 資 */
-  { 0x40, 0x3f, 0x0b, 0x6b, 0x7f, 0x6b, 0x0b }, /* 0x12 居 */
-  { 0x54, 0x13, 0x4d, 0x07, 0x52, 0x0f, 0x52 }, /* 0x13 然 */
-  { 0x04, 0x7e, 0x13, 0x3e, 0x5f, 0x76, 0x1a }, /* 0x14 傳 */
-  { 0x49, 0x38, 0x62, 0x6b, 0x5e, 0x6b, 0x62 }, /* 0x15 送 */
-  { 0x49, 0x5d, 0x3b, 0x2d, 0x0e, 0x40, 0x7f }, /* 0x16 到 */
-  { 0x04, 0x7f, 0x44, 0x5f, 0x54, 0x5f, 0x44 }, /* 0x17 世 */
-  { 0x20, 0x5f, 0x35, 0x1f, 0x75, 0x1f, 0x20 }, /* 0x18 界 */
-  { 0x1a, 0x7f, 0x4a, 0x3d, 0x48, 0x3a, 0x55 }, /* 0x19 機 */
-  { 0x3e, 0x2b, 0x3e, 0x04, 0x0b, 0x52, 0x7e }, /* 0x1A 的 */
-  { 0x75, 0x20, 0x1f, 0x6b, 0x7b, 0x2b, 0x6b }, /* 0x1B 漏 */
-  { 0x75, 0x00, 0x7f, 0x35, 0x35, 0x41, 0x7f }, /* 0x1C 洞 */
-  { 0x08, 0x4a, 0x5a, 0x55, 0x2b, 0x28, 0x18 }, /* 0x1D 多 */
+  { 0x42, 0x3e, 0x05, 0x7d, 0x4f, 0x5c, 0x64 }, /* 0x0C 危 */
+  { 0x7f, 0x1b, 0x5c, 0x36, 0x5d, 0x36, 0x5c }, /* 0x0D 險 */
+  { 0x0a, 0x6e, 0x7f, 0x6a, 0x67, 0x7d, 0x05 }, /* 0x0E 暫 */
+  { 0x3e, 0x2a, 0x3e, 0x6a, 0x2f, 0x7a, 0x28 }, /* 0x0F 時 */
+  { 0x49, 0x38, 0x6a, 0x5f, 0x40, 0x7f, 0x6a }, /* 0x10 逃 */
+  { 0x49, 0x3a, 0x40, 0x78, 0x6f, 0x49, 0x7f }, /* 0x11 過 */
+  { 0x08, 0x08, 0x08, 0x08, 0x08, 0x0c, 0x08 }, /* 0x12 一 */
+  { 0x48, 0x6a, 0x5f, 0x6a, 0x3f, 0x42, 0x7e }, /* 0x13 劫 */
+  { 0x53, 0x5a, 0x3f, 0x7a, 0x3f, 0x5a, 0x53 }, /* 0x14 業 */
+  { 0x42, 0x22, 0x1a, 0x07, 0x02, 0x42, 0x7e }, /* 0x15 力 */
+  { 0x40, 0x37, 0x45, 0x7d, 0x55, 0x57, 0x40 }, /* 0x16 足 */
+  { 0x6a, 0x6b, 0x36, 0x7e, 0x5b, 0x3e, 0x56 }, /* 0x17 讓 */
+  { 0x14, 0x56, 0x7e, 0x15, 0x5f, 0x24, 0x55 }, /* 0x18 我 */
+  { 0x7f, 0x41, 0x5d, 0x55, 0x5d, 0x41, 0x7f }, /* 0x19 回 */
+  { 0x48, 0x4a, 0x6a, 0x5f, 0x4a, 0x2a, 0x48 }, /* 0x1A 去 */
 };
 /*=========================================================
                           中文对话
@@ -458,11 +479,11 @@ PROGMEM const uint8_t misaki_font_f2[ MISAKI_FONT_F2_SIZE + 1 ][ MISAKI_FONT_F2_
 #define MESNUM 5 //文本数量
 byte MesF[2]; //对应对话进行条数
 PROGMEM const uint8_t misaki_font_0x00[1] = { 0x00 };
-PROGMEM const uint8_t mes0[] = { 0xf2, 0x00, 0x01, 0x02, 0x03, }; //邏輯壞塊
-PROGMEM const uint8_t mes1[] = { 0xf2, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, }; //這項目真是不穩定
-PROGMEM const uint8_t mes2[] = { 0xf2, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, }; //難怪沒有投資
-PROGMEM const uint8_t mes3[] = { 0xf2, 0x12, 0x13, 0x14, 0x15, 0x16, 0x04, }; //居然傳送到這
-PROGMEM const uint8_t mes4[] = { 0xf2, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x07, 0x1d, }; //世界機的漏洞真多
+PROGMEM const uint8_t mes0[] = { 0xf2, 0x00, 0x01, 0x02, 0x03, };//前面居然
+PROGMEM const uint8_t mes1[] = { 0xf2, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, };//這異世界真不穩定
+PROGMEM const uint8_t mes2[] = { 0xf2, 0x04, 0x06, 0x07, 0x08, 0x0c, 0x0d, };//這世界真危險
+PROGMEM const uint8_t mes3[] = { 0xf2, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, };//暫時逃過一劫
+PROGMEM const uint8_t mes4[] = { 0xf2, 0x14, 0x15, 0x09, 0x16, 0x17, 0x18, 0x19, 0x1a, };//業力不足讓我回去
 /*                                1     2     3     4      5     6     7    8     9
   PROGMEM const uint8_t mes[] =
 */
@@ -478,6 +499,97 @@ void test()
   arduboy.print("OK");
   arduboy.display();
   delay(500);
+}
+/*====================================================================
+                             只循环一次
+  ====================================================================*/
+void setup()
+{
+  arduboy.boot();
+  arduboy.setTextColor(0);
+  arduboy.setTextBackground(1);
+  arduboy.invert(DisplayInvert);
+  //Serial.begin(115200);
+  ROOM = Entity[0][2];
+  draw();
+}
+/*====================================================================
+                             主程序
+  ====================================================================*/
+void loop()
+{
+  FixedUpdate();
+  Update() ;
+}
+void FixedUpdate()
+{
+  if (!key_lock) {
+    key();
+  }
+  logic();
+}
+void Update()
+{
+  draw();
+}
+/*====================================================================
+                             逻辑
+  ====================================================================*/
+void logic()
+{
+  /*
+     检测按键返回值 对相应方向进行移动障碍物判断
+  */
+  if (KeyBack < 4) {
+    SBDP();
+    player_move = true;
+  } else {
+    player_move = false;
+  }
+  switch (KeyBack) {
+    case 0:
+      if (!move_lock) {
+        PlayerD = 0;
+      }
+      break;
+    case 1:
+      if (!move_lock) {
+        PlayerD = 1;
+      }
+      break;
+    case 2:
+      if (!move_lock) {
+        PlayerD = 2;
+      }
+      break;
+    case 3:
+      if (!move_lock) {
+        PlayerD = 3;
+      }
+      break;
+    case 4:
+      if (dialog && millis() >= dialog_cool_time + Timer[3]) {
+        room_f++;
+        Timer[3] = millis();
+      }
+      break;
+    case 5:
+      InfoMenu();
+      break;
+  }
+  /*
+     如果障碍物判断合法那么将会进行移动
+  */
+  if (player_move) {
+    SBDP();
+  }
+  if (LA) {
+    Entity[0][0] += CPDX;
+    Entity[0][1] += CPDY;
+    LA = false;
+  }
+  BF++;
+  if (BF >= 5) BF = 0;
 }
 
 /*=========================================================
@@ -505,7 +617,11 @@ void Event() {
             Entity[0][0] = PMX * 16;
             Entity[0][1] = PMY * 16;
             PlayerD = pgm_read_byte(&ETPC[TPN][1]);
-            Blur();
+            for (byte f = 0; f < 4; f++) {
+              Blur(0, 0, 127, 64, f);
+              arduboy.display();
+              delay(250);
+            }
             break;
           case 1:  //自动型对话
             /* pgm_read_byte(&)  byte() F(" ,")
@@ -561,20 +677,13 @@ void Event() {
 /*
    场景虚化
 */
-void Blur() {
-  for (byte f = 0; f < 4; f++) {
-    byte state = f;
-    for (byte y = 0; y < 64; y++) {
-      for (byte x = 0; x < 128; x++) {
-        if (x % 2 == y % 2 && x % 2 == 0) arduboy.drawPixel(x + (f > 0 && f < 3), y + (f > 1), 0);
-      }
+void Blur(int sx, int sy, int ex, int ey, byte f) {
+  for (byte y = 0; y < 64; y++) {
+    for (byte x = 0; x < 128; x++) {
+      if (x % 2 == y % 2 && x % 2 == 0 && x >= sx && x <= ex && y >= sy && y <= ey) arduboy.drawPixel(x + (f > 0 && f < 3), y + (f > 1), 0);
     }
-    arduboy.display();
-    delay(250);
   }
 }
-
-
 /*=========================================================
                      绘图
   =========================================================*/
@@ -583,15 +692,24 @@ void draw()
   arduboy.clear();
   DrawMap();
   draw_player(55, 23);
+  DrawKarma(0, 49, Karma - 1);
   Event();
-
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
   arduboy.display();
 }
-/*=========================================================
-                      地图操作
-  =========================================================*/
+/*
+   符文业力
+*/
+void DrawKarma(int x, int y, byte K)
+{
+  arduboy.fillCircle(x + 7, y + 7, 7, 1);
+  arduboy.drawCircle(x + 7, y + 7, 7, 0);
+  arduboy.drawBitmap(x + 4, y + 3, Rune[K], 8, 8, 0);
+}
+/*
+   地图场景
+*/
 void DrawMap()
 {
   PMX = Entity[0][0] / 16;
@@ -645,7 +763,87 @@ void DrawMap()
     DY += 16;
   }
 }
+/*
+   显示玩家
+*/
+void draw_player(byte x, byte y)
+{
+  //玩家皮肤
+  arduboy.drawBitmap(x , y, T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
+  //眨眼控制
+  y += 4;
+  switch (PlayerD) {
+    case 1:
+      x += 6;
+      break;
+    case 2:
+      x += 3;
+      break;
+    case 3:
+      x += 10;
+      break;
+  }
+  for (byte i = 0; i <= 1; i++) {
+    arduboy.fillRect(x + 2 * i, y, 1, 2, 1);
+  }
+  if (millis() >= BlinkEyesTime + Timer[4] && player_dyn == 0 || !BEF) {
+    if (player_dyn == 0) BEF = false;
+    //arduboy.drawPixel
+    for (byte i = 0; i <= 1; i++) {
+      arduboy.fillRect(x + 2 * i, y, 1, abs(int(2 - player_dyn)), 0);
+    }
+    if (player_dyn == 2) {
+      Timer[4] = millis();
+      BEF = true;
+    }
+  }
+  /*
+    下一动态帧
+  */
+  if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
+    Timer[0] = millis();   //重置移动帧计时器
+    player_dyn++; //下一个动态帧
+    if (player_dyn >= 4) {
+      player_dyn = 0;
+    }
+  }
+}
+/*
+   游戏内信息菜单 持续B键调出
+*/
+void InfoMenu()
+{
 
+  for (byte KF = 49; KF > 24; KF--) {
+    key();
+    if (KeyBack != 5) break;
+    arduboy.clear();
+    DrawMap();
+    draw_player(55, 23);
+    DrawKarma(map(KF,49,24,0,7), KF, Karma - 1);
+    arduboy.display();
+  }
+  while (KeyBack == 5) {
+    key();
+    arduboy.clear();
+    //地图以及玩家
+    DrawMap();
+    draw_player(55, 23);
+    //业力符文
+    for (byte i = 0; i < 6; i++) {
+      DrawKarma(8, -7 + i * 15, Karma + 1 - i);
+      if (i != 2) Blur(8, -7 + i * 15, 22, +7 + i * 15, 1);
+    }
+    //当前业力符文外圈浮动效果
+    arduboy.drawCircle(15,30,10+player_dyn,1);
+    arduboy.drawCircle(15,30,11+player_dyn,0);
+    arduboy.drawCircle(15,30,12+player_dyn,1);
+    arduboy.display();
+  }
+}
+/*
+   扫描按键
+*/
 void key()
 {
   if (millis() >= key_cool_time + Timer[1]) {
@@ -672,50 +870,6 @@ void key()
     }
     if (arduboy.pressed(B_BUTTON)) {
       KeyBack = 5;
-    }
-  }
-}
-void draw_player(byte x, byte y)
-{
-  /*
-    皮肤
-  */
-  arduboy.drawBitmap(x , y, T_Man_direction[PlayerD * 2 + player_move][player_dyn], 16, 16, 0);
-  /*
-    控制眨眼
-  */
-  if (millis() >= BlinkEyesTime + Timer[4] && player_dyn == 0 || !BEF) {
-    if (player_dyn == 0) BEF = false;
-    y += 4;
-    switch (PlayerD) {
-      case 1:
-        x += 6;
-        break;
-      case 2:
-        x += 3;
-        break;
-      case 3:
-        x += 10;
-        break;
-    }
-    //arduboy.drawPixel
-    for (byte i = 0; i <= 1; i++) {
-      arduboy.fillRect(x + 2 * i, y, 1, 2, 1);
-      arduboy.fillRect(x + 2 * i, y, 1, abs(int(2 - player_dyn)), 0);
-    }
-    if (player_dyn == 2) {
-      Timer[4] = millis();
-      BEF = true;
-    }
-  }
-  /*
-    下一动态帧
-  */
-  if (millis() >= mobile_frame_time + Timer[0]) {  //移动帧时间
-    Timer[0] = millis();   //重置移动帧计时器
-    player_dyn++; //下一个动态帧
-    if (player_dyn >= 4) {
-      player_dyn = 0;
     }
   }
 }
@@ -759,61 +913,6 @@ void SBDP()
     }
   }
 }
-void logic()
-{
-  /*
-     检测按键返回值 对相应方向进行移动障碍物判断
-  */
-  if (KeyBack < 4) {
-    SBDP();
-    player_move = true;
-  } else {
-    player_move = false;
-  }
-  switch (KeyBack) {
-    case 0:
-      if (!move_lock) {
-        PlayerD = 0;
-      }
-      break;
-    case 1:
-      if (!move_lock) {
-        PlayerD = 1;
-      }
-      break;
-    case 2:
-      if (!move_lock) {
-        PlayerD = 2;
-      }
-      break;
-    case 3:
-      if (!move_lock) {
-        PlayerD = 3;
-      }
-      break;
-    case 4:
-      if (dialog && millis() >= dialog_cool_time + Timer[3]) {
-        room_f++;
-        Timer[3] = millis();
-      }
-      break;
-    case 5:
-      break;
-  }
-  /*
-     如果障碍物判断合法那么将会进行移动
-  */
-  if (player_move) {
-    SBDP();
-  }
-  if (LA) {
-    Entity[0][0] += CPDX;
-    Entity[0][1] += CPDY;
-    LA = false;
-  }
-  BF++;
-  if (BF >= 5) BF = 0;
-}
 void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 {
   uint8_t pb;
@@ -841,24 +940,4 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
   arduboy.setCursor(x, y + player_dyn);
   arduboy.print(char(31));
 }
-void setup()
-{
-  arduboy.boot();
-  arduboy.setTextColor(0);
-  arduboy.setTextBackground(1);
-  arduboy.invert(DisplayInvert);
-  //Serial.begin(115200);
-  ROOM = Entity[0][2];
-  draw(); //渲染画面
-}
-void loop()
-{
 
-
-  if (!key_lock) {
-    key();
-  }
-  logic();
-  draw();
-
-}
