@@ -15,6 +15,7 @@ bool WOOPS = false; //世界崩坏开关
 bool MoveTrue; //是否真移动
 bool BEF; //是否完成眨眼动作
 
+int FPS,SFPS;
 byte Karma = 2; //业力值1-10  10:游戏结束
 byte BF; //眨眼帧
 byte ROOM; //当前房间号
@@ -28,11 +29,12 @@ byte SBDPL[] = {2, 5, 9, 10, 11, 12, 13, 14, 20, 21, 22, 24, 25, 26, 27, 28, 29,
 int Entity[1][3] = {    //实体坐标 以及ROOM
   {160, 32, 11},  //玩家出生点
 };
-unsigned long Timer[5];  //时间列表 0 1 2 3对话框冷却[没有用上] 4眨眼时间
+unsigned long Timer[5];  //时间列表 0 1 2 3FPS 4眨眼时间
 bool KarmaB[8]; //一次性业力列表 0-崩溃边缘 1-公园 2-小破庙 3-小溪边 4-床 5-酒 6-药 7-海岸
 /*=========================================================
                          常量
   =========================================================*/
+#define FPST 1000
 #define BlinkEyesTime 5000
 #define dialog_cool_time 150
 #define mobile_frame_time 150
@@ -1269,6 +1271,9 @@ void FixedUpdate()
 void Update()
 {
   draw();
+
+  FPS++;
+
 }
 /*====================================================================
                              逻辑
@@ -1447,11 +1452,15 @@ void draw()
   arduboy.clear();
   DrawMap();
   draw_player(55, 23);
+  // draw_Reverberation(64, 32);
   DrawRune(0, 49, Karma - 1);
   Event();
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
+  drawFPS();
+  
   arduboy.display();
+
 }
 /*
    显示符文
@@ -1571,6 +1580,15 @@ void DrawMap()
     }
     DX = CDX;
     DY += 16;
+  }
+}
+/*
+    回响
+*/
+void draw_Reverberation(int x, int y)
+{
+  for (byte cr = 1; cr < 16; cr += 1) {
+    drawCircle(x, y, cr, 0, cr * 15);
   }
 }
 /*
@@ -1725,6 +1743,45 @@ void SBDP()
     }
   }
 }
+/*
+   加强版arduboy画圆
+*/
+void drawCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color, uint8_t GC)
+{
+  int16_t f = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -2 * r;
+  int16_t x = 0;
+  int16_t y = r;
+
+  if (random(0, 255) >= GC) arduboy.drawPixel(x0, y0 + r, color);
+  if (random(0, 255) >= GC) arduboy.drawPixel(x0, y0 - r, color);
+  if (random(0, 255) >= GC) arduboy.drawPixel(x0 + r, y0, color);
+  if (random(0, 255) >= GC)  arduboy.drawPixel(x0 - r, y0, color);
+
+  while (x < y)
+  {
+    if (f >= 0)
+    {
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 + x, y0 + y, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 - x, y0 + y, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 + x, y0 - y, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 - x, y0 - y, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 + y, y0 + x, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 - y, y0 + x, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 + y, y0 - x, color);
+    if (random(0, 255) >= GC) arduboy.drawPixel(x0 - y, y0 - x, color);
+  }
+}
 void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
 {
   uint8_t pb;
@@ -1783,4 +1840,12 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
     arduboy.print(char(31));
   }
 }
-
+void drawFPS()
+{
+  arduboy.println(SFPS);
+  if (millis() >= FPST + Timer[3]) {
+    Timer[3] = millis();
+    SFPS=FPS;
+    FPS = 0;
+  }
+}
