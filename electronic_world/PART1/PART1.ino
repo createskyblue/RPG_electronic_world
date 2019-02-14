@@ -4,6 +4,11 @@ Arduboy2 arduboy;
 /*=========================================================
                          动态变量
   =========================================================*/
+union uint
+{
+  int a;
+  byte b[2];
+};
 bool player_move = false; //玩家是否移动
 bool key_lock = false; //键盘锁
 bool move_lock = false; //方向锁
@@ -15,7 +20,7 @@ bool WOOPS = false; //世界崩坏开关
 bool MoveTrue; //是否真移动
 bool BEF; //是否完成眨眼动作
 
-int FPS,SFPS;
+int FPS, SFPS;
 byte Karma = 2; //业力值1-10  10:游戏结束
 byte BF; //眨眼帧
 byte ROOM; //当前房间号
@@ -30,7 +35,7 @@ int Entity[1][3] = {    //实体坐标 以及ROOM
   {160, 32, 11},  //玩家出生点
 };
 unsigned long Timer[5];  //时间列表 0 1 2 3FPS 4眨眼时间
-bool KarmaB[8]; //一次性业力列表 0-崩溃边缘 1-公园 2-小破庙 3-小溪边 4-床 5-酒 6-药 7-海岸
+//一次性业力列表 0-崩溃边缘 1-公园 2-小破庙 3-小溪边 4-床 5-酒 6-药 7-海岸 EEPROM 127-158
 /*=========================================================
                          常量
   =========================================================*/
@@ -795,7 +800,8 @@ PROGMEM const uint8_t misaki_font_f2[ MISAKI_FONT_F2_SIZE + 1 ][ MISAKI_FONT_F2_
                           中文对话
   =========================================================*/
 #define MESNUM 57 //文本数量
-byte MesF[30]; //对应对话进行条数
+#define MesFL 30  //文本条数
+//byte MesF[MesFL]; //对应对话进行条数
 PROGMEM const uint8_t misaki_font_0x00[1] = { 0x00 };
 PROGMEM const uint8_t mes0[] = { 0xf2, 0x00, 0x01, 0x02, 0x03, };//前面居然
 PROGMEM const uint8_t mes1[] = { 0xf2, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, };//這異世界真不穩定
@@ -1246,12 +1252,12 @@ void(* resetFunc) (void) = 0; //制造重启命令
 void setup()
 {
   arduboy.boot();
-  arduboy.setTextColor(0);
-  arduboy.setTextBackground(1);
+  SetTextColor(0);
   arduboy.invert(DisplayInvert);
-  //Serial.begin(115200);
+  Serial.begin(115200);
   ROOM = Entity[0][2];
   draw();
+  Eload();
 }
 /*====================================================================
                              主程序
@@ -1310,9 +1316,11 @@ void logic()
         PlayerD = 3;
       }
       break;
-
     case 5:
       InfoMenu();
+      break;
+    case 6:
+      ERst();
       break;
   }
   /*
@@ -1331,6 +1339,7 @@ void logic()
   /*
      检查业力不足 非法地图
   */
+  if (Karma <= 0 || Karma > 10) ERst();
   if (ROOM >= 20 && ROOM <= 29 && Karma < ROOM - 19) {
     drawText(0, 57, MES[56], pgm_read_byte(&MESleng[56]));
     arduboy.display();
@@ -1362,6 +1371,7 @@ void Event() {
             case 0:
               //符合目标传送门跳转条件
               TP(pgm_read_byte(&ETRoom[TPN][1]), pgm_read_byte(&ETXY[TPN][1][0]) * 16, pgm_read_byte(&ETXY[TPN][1][1]) * 16, pgm_read_byte(&ETPC[TPN][1]));
+              Esave();
               break;
             case 1:  //自动型对话
               /* pgm_read_byte(&)  byte() F(" ,")
@@ -1374,12 +1384,12 @@ void Event() {
               */
 
               key();
-              if (millis() >= dialog_cool_time + Timer[2] && KeyBack == 4 && pgm_read_byte(&ETPC[TPN][1]) && pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETRoom[TPN][1])] > pgm_read_byte(&ETXY[TPN][1][1])) {
+              if (millis() >= dialog_cool_time + Timer[2] && KeyBack == 4 && pgm_read_byte(&ETPC[TPN][1]) && pgm_read_byte(&ETXY[TPN][1][0]) + EEPROM.read(pgm_read_byte(&ETRoom[TPN][1]) + 11) > pgm_read_byte(&ETXY[TPN][1][1])) {
                 //当前对话为可重复触发类型，重置触发状态
-                MesF[pgm_read_byte(&ETRoom[TPN][1])] = 0;
+                EEPROM.update(pgm_read_byte(&ETRoom[TPN][1]) + 11, 0);
                 Timer[2] = millis();
               } else {
-                byte MesI = pgm_read_byte(&ETXY[TPN][1][0]) + MesF[pgm_read_byte(&ETRoom[TPN][1])];
+                byte MesI = pgm_read_byte(&ETXY[TPN][1][0]) + EEPROM.read(pgm_read_byte(&ETRoom[TPN][1]) + 11);
                 if (MesI <= pgm_read_byte(&ETXY[TPN][1][1])) {
                   /*
                     arduboy.println(MesI);
@@ -1393,7 +1403,7 @@ void Event() {
                   if (millis() >= dialog_cool_time + Timer[2]) {
                     Timer[2] = millis();
                     key();
-                    if (KeyBack == 4) MesF[pgm_read_byte(&ETRoom[TPN][1])]++;
+                    if (KeyBack == 4) EEPROM.update(pgm_read_byte(&ETRoom[TPN][1]) + 11, EEPROM.read(pgm_read_byte(&ETRoom[TPN][1]) + 11) + 1) ;
                   }
                 }
               }
@@ -1408,13 +1418,15 @@ void Event() {
                是否重复触发   pgm_read_byte(&ETP[TPN][1])
             */
             case 2:
-              if (KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] == false || pgm_read_byte(&ETPC[TPN][1]) == 1) {
+              if (EEPROM.read(pgm_read_byte(&ETXY[TPN][1][1]) + 127) == false || pgm_read_byte(&ETPC[TPN][1]) == 1) {
                 char KC = pgm_read_byte(&ETXY[TPN][1][0]);
                 if (pgm_read_byte(&ETRoom[TPN][1]) == 0) KC = -KC;
-                KarmaB[pgm_read_byte(&ETXY[TPN][1][1])] = true;
+                EEPROM.update(pgm_read_byte(&ETXY[TPN][1][1]) + 127, 1);
                 KarmaCutscenes(0);
                 DrawKarma(KC);
                 DrawKarma(0);
+                Esave();
+                // Eload();
                 delay(1000);
               }
               break;
@@ -1458,7 +1470,7 @@ void draw()
   // arduboy.setCursor(0, 0);
   // arduboy.print(map(player_dyn, 0, 2, 0, 1));
   drawFPS();
-  
+
   arduboy.display();
 
 }
@@ -1477,7 +1489,7 @@ void DrawRune(int x, int y, byte K)
 void DrawKarma(char KC)
 {
   //KC 业力变动范围 -1 0 1
-  if (Karma + KC >= 0 && Karma + KC <= 10) Karma += KC;
+  if (Karma + KC > 0 && Karma + KC <= 10) Karma += KC;
   for (char KCY = 14 * KC;;) {
     arduboy.clear();
     DrawMap();
@@ -1682,6 +1694,9 @@ void key()
     if (arduboy.pressed(B_BUTTON)) {
       KeyBack = 5;
     }
+    if (arduboy.pressed(A_BUTTON) && arduboy.pressed(B_BUTTON)) {
+      KeyBack = 6;
+    }
   }
 }
 /*
@@ -1840,12 +1855,126 @@ void drawText(uint8_t x, uint8_t y, const uint8_t *mes, uint8_t cnt)
     arduboy.print(char(31));
   }
 }
+void SetTextColor(bool color) {
+  arduboy.setTextColor(color);
+  arduboy.setTextBackground(!color);
+}
 void drawFPS()
 {
   arduboy.println(SFPS);
   if (millis() >= FPST + Timer[3]) {
     Timer[3] = millis();
-    SFPS=FPS;
+    SFPS = FPS;
     FPS = 0;
   }
 }
+/*
+  union ESaveData
+  {
+  byte Karma;
+  int Entity[1][3];
+  byte MesF[30];
+  };
+*/
+void Esave() {
+  int EAddress = 0;
+  for (byte i = 0; i < 5; i++) {
+    EEPROM.update(EAddress, pgm_read_byte(&mes55[i]));  //写入署名数据
+    EAddress++;
+  }
+  EEPROM.update(5, Karma); //业力
+  EWUint(6, Entity[0][0]);
+  EWUint(8, Entity[0][1]);
+  EEPROM.update(10, ROOM);
+  /*
+    for (byte i = EAddress; i < EAddress + MesFL; i++) {
+    EEPROM.update(i, MesF[i - 6]);
+    }
+    EAddress += MesFL;
+  */
+}
+void Eload() {
+  byte EData;
+  for (byte i = 0; i < 5; i++) {
+    EData = EEPROM.read(i);
+    if (i < 5 && EData != pgm_read_byte(&mes55[i])) ERst();
+  }
+  for (int i = 0; i < 1024; i++) {
+    EData = EEPROM.read(i);
+    switch (i) {
+      case 5:
+        Karma = EData;
+        break;
+    }
+    Serial.print(F("# "));
+    Serial.print(i);
+    Serial.print(F(" : "));
+    Serial.println(EData);
+  }
+  Entity[0][0] = ERUint(6);
+  Entity[0][1] = ERUint(8);
+  ROOM = EEPROM.read(10);
+}
+int &ERUint(byte address)
+{
+  uint ERDuint;
+  for (byte i = 0; i < 2; i++) {
+    ERDuint.b[i] = EEPROM.read(address + i);
+    if (i == 1) {
+      delay(1);
+      return ERDuint.a;
+    }
+  }
+}
+void EWUint(byte address, int RSint)
+{
+  uint ERDuint;
+  for (byte i = 0; i < 2; i++) {
+    ERDuint.a = RSint;
+    EEPROM.update(address + i, ERDuint.b[i]);
+  }
+}
+void drawOOPS() {
+  arduboy.clear();
+  for (byte y = 0; y < 2; y++) {
+    for (byte x = 0; x < 4; x++) arduboy.drawBitmap(x * 32, y * 32, OOPS, 32, 32, 1);
+  }
+  arduboy.display();
+}
+
+void ERst() {
+  drawOOPS();
+  arduboy.display();
+  delay(1000);
+  SetTextColor(0);
+  arduboy.println(F("EEPROM CHECK ERROR!"));
+  SetTextColor(1);
+  for (byte i = 0; i < 5; i++) {
+    arduboy.println( byte(EEPROM.read(i)) + String("!=") + pgm_read_byte(&mes55[i]));
+  }
+  arduboy.display();
+  delay(5000);
+  arduboy.clear();
+  drawOOPS();
+  SetTextColor(0);
+  arduboy.println(F("CLEAR EEPROM"));
+  arduboy.display();
+  for (int i = 0; i < 1024; i++) {
+    EEPROM.update(i, 0);
+  }
+  arduboy.println(F("SETUP EEPROM"));
+  arduboy.display();
+  Esave();
+  EEPROM.update(5, 2);
+  EWUint(6, 160);
+  EWUint(8, 32);
+  EEPROM.update(10, 11);
+
+  arduboy.println(F("REBOOT"));
+  arduboy.display();
+  delay(1500);
+  while (1) {
+    resetFunc();
+  }
+}
+
