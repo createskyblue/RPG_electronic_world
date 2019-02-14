@@ -1340,7 +1340,7 @@ void logic()
      检查业力不足 非法地图
   */
   if (Karma <= 0 || Karma > 10) ERst();
-  if (ROOM >= 20 && ROOM <= 29 && Karma < ROOM - 19) {
+  if (ROOM >= 245 && Karma < 245 - 244) {
     drawText(0, 57, MES[56], pgm_read_byte(&MESleng[56]));
     arduboy.display();
     delay(1000);
