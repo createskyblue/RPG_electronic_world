@@ -54,3 +54,12 @@ set image=load data\image\51.bmp 51
 set image=load data\image\52.bmp 52
 set image=load data\image\53.bmp 53
 set image=load data\image\54.bmp 54
+
+set image=load data\image\55.bmp 55
+set image=load data\image\56.bmp 56
+set image=load data\image\57.bmp 57
+set image=load data\image\58.bmp 58
+set image=load data\image\59.bmp 59
+set image=load data\image\60.bmp 60
+set image=load data\image\61.bmp 61
+set image=load data\image\62.bmp 62
